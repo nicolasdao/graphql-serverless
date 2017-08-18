@@ -1,0 +1,49 @@
+{
+  "name": "graphql-serverless",
+  "version": "0.1.0-alpha.0",
+  "description": "Create an GraphQL API (incl. GraphiQL UI) on Google Cloud Functions or Firebase Functions (AWS Lambda coming soon...).",
+  "contributors": [
+    "Nicolas Dao <nic@neap.co> (https://neap.co/)"
+  ],
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha",
+    "eslint": "eslint src/",
+    "release": "standard-version --prerelease alpha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicolasdao/google-graphql-functions.git"
+  },
+  "keywords": [
+    "graphql",
+    "graphiql",
+    "google",
+    "cloud",
+    "functions"
+  ],
+  "author": "Nicolas Dao",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/nicolasdao/google-graphql-functions/issues"
+  },
+  "homepage": "https://github.com/nicolasdao/google-graphql-functions#readme",
+  "dependencies": {
+    "accepts": "^1.3.3",
+    "content-type": "^1.0.2",
+    "graphql": "^0.9.3",
+    "http-errors": "^1.6.1",
+    "querystring": "^0.2.0",
+    "raw-body": "^2.2.0",
+    "standard-version": "^4.2.0",
+    "url": "^0.11.0",
+    "webfunc": "^0.4.0-alpha.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.0",
+    "eslint": "^4.1.1",
+    "mocha": "^3.4.2",
+    "node-mocks-http": "^1.6.4",
+    "standard-version": "^4.2.0"
+  }
+}

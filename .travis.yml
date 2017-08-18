@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+  - "7"
+deploy:
+  provider: npm
+  email: "nicolas.dao@gmail.com"
+  api_key: $NPM_TOKEN
+  on:
+    tags: true
