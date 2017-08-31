@@ -19,7 +19,7 @@
 
 const accepts = require('accepts')
 const graphql = require('graphql')
-const { serveHttp, routing } = require('webfunc')
+const { routing, HttpHandler } = require('webfunc')
 const httpError = require('http-errors')
 const url = require('url')
 const path = require('path')
@@ -27,83 +27,35 @@ const path = require('path')
 const parseBody = require('./parseBody')
 const renderGraphiQL = require('./renderGraphiQL')
 
+class GraphQlHandler extends HttpHandler {
+	constructor(options, control) { super(options, control) }
+	get id() { return 'graphql' }
+
+	process(req, res, params, route) {
+		return super.control(req, res, { request: params, get options() { return super.options }, err: null })
+			.then(graphQlOptions => {
+				const options = graphQlOptions || super.options
+				const httpEndpoint = ((req._parsedUrl || {}).pathname || '/').toLowerCase()
+				const endpoint = route ? ((routing.matchRoute(httpEndpoint, route) || {}).match || '/') : '/'
+				if (!res.headersSent) {
+					if (!options) 
+						throw httpError(500, 'GraphQL middleware requires getOptions.')
+					else {
+						const optionsWithNewGraphiqlUri = mergeGraphqlOptionsWithEndpoint(options, endpoint)
+						const httpHandler = graphqlHTTP(optionsWithNewGraphiqlUri)
+						if (!httpHandler)
+							throw httpError(500, 'GraphQL middleware requires a valid \'getOptions\' argument.')
+						return httpHandler(req, res)
+					}
+				}
+			})
+	}
+}
+
 const mergeGraphqlOptionsWithEndpoint = (graphqlOptions = {}, endpointPath = '/') =>
 	graphqlOptions.endpointURL
 		? Object.assign({}, graphqlOptions, { endpointURL: path.join(endpointPath, graphqlOptions.endpointURL) })
 		: graphqlOptions
-
-exports.serveHTTP = (arg1, arg2, arg3) => {
-	let route = null
-	let routeDetails = null
-	let getOptions = null
-	let appConfig = null
-	const typeOfArg1 = typeof(arg1 || undefined)
-	const typeOfArg2 = typeof(arg2 || undefined)
-	const typeOfArg3 = typeof(arg3 || undefined)
-
-	if (arg1) {
-		if (typeOfArg1 != 'string' && typeOfArg1 != 'object' && typeOfArg1 != 'function')
-			throw new Error('The first argument of the \'serveHTTP\' method can only be a route, a graphQL options object, or a function similar to (req, res, params) => ... that returns a graphQL option object or a promise returning a graphql object.')
-		
-		if (typeOfArg1 == 'string') {
-			route = arg1
-			routeDetails = routing.getRouteDetails(route)
-			if (!arg2)
-				throw new Error('If the first argument of the \'serveHTTP\' method is a route, then the second argument is required and must either be a graphQL options object, or a function similar to (req, res, params) => ... that returns a graphQL option object or a promise returning a graphql object.')
-			if (typeOfArg2 != 'object' && typeOfArg2 != 'function')
-				throw new Error('If the first argument of the \'serveHTTP\' method is a route, then the second argument must either be a graphQL options object, or a function similar to (req, res, params) => ... that returns a graphQL option object or a promise returning a graphql object.')
-			if (typeOfArg2 == 'object' && arg2.length >= 0)
-				throw new Error('If the first argument of the \'serveHTTP\' method is a route, then the second argument of the \'serveHTTP\' method cannot be an array. It must either be a route, a graphQL options object, or a function similar to (req, res, params) => ... that returns a graphQL option object or a promise returning a graphql object.')
-			if (typeOfArg2 == 'object' && !arg2.schema)
-				throw new Error('If the first argument of the \'serveHTTP\' method is a route and the second a graphQL object, then the second argument must contain a valid property called \'schema\'.')
-
-			getOptions = arg2
-			if (typeOfArg3 != 'undefined' && typeOfArg3 != 'object')
-				throw new Error('If the first 2 arguments of the \'serveHTTP\' method are properly defined, then the third one must represent an optional appConfig object.')
-			appConfig = arg3
-		}
-		else {
-			if (typeOfArg1 == 'object' && arg1.length >= 0)
-				throw new Error('The first argument of the \'serveHTTP\' method cannot be an array. It must either be a route, a graphQL options object, or a function similar to (req, res, params) => ... that returns a graphQL option object or a promise returning a graphql object.')
-			if (typeOfArg1 == 'object' && !arg1.schema)
-				throw new Error('If the first argument of the \'serveHTTP\' method is a graphQL object, then it must contain a valid property called \'schema\'.')
-
-			getOptions = arg1
-			if (typeOfArg2 != 'undefined' && typeOfArg2 != 'object')
-				throw new Error('If the first argument of the \'serveHTTP\' method is either a graphQL options object, or a function similar to (req, res, params) => ... that returns a promise containing a graphQL option object, then the second one must represent an optional appConfig object.')
-			appConfig = arg2
-		}
-
-		const optionType = typeof(getOptions)
-		const getNewOptions = optionType == 'object'
-			? () => Promise.resolve(getOptions) :
-			optionType == 'function' ? (req, res, params) => Promise.resolve(getOptions(req, res, params)) : 
-				() => Promise.resolve({})
-
-		const func = (req, res, params) => {
-			const httpEndpoint = ((req._parsedUrl || {}).pathname || '/').toLowerCase()
-			const endpoint = routeDetails ? ((routing.matchRoute(httpEndpoint, routeDetails) || {}).match || '/') : '/'
-			if (!res.headersSent) {
-				if (!getOptions) 
-					throw httpError(500, 'GraphQL middleware requires getOptions.')
-				else {
-					const getHttpHandler = getNewOptions(req, res, params).then(options => !res.headersSent ? graphqlHTTP(mergeGraphqlOptionsWithEndpoint(options, endpoint)) : null) 
-					return getHttpHandler.then(httpHandler => {
-						if (!httpHandler)
-							throw httpError(500, 'GraphQL middleware requires a valid \'getOptions\' argument.')
-						return httpHandler(req, res)
-					})
-				}
-			}
-		}
-
-		return route ? serveHttp(route, func, appConfig) : serveHttp(func, appConfig)
-	}
-	else
-		throw new Error('The first argument of the \'serveHTTP\' method is required. It must either be a route, a graphQL options object, or a function similar to (req, res, params) => ... that returns a graphQL option object or a promise returning a graphql object.')
-}
-
-exports.graphqlHTTP = graphqlHTTP
 
 function graphqlHTTP(options) {
 	if (!options) {
@@ -187,7 +139,7 @@ function graphqlHTTP(options) {
 			showGraphiQL = graphiql && canDisplayGraphiQL(request, params)
 
 			if (showGraphiQL && endpointURL) {
-				let path = (p => p ? p : '')(url.parse(request.url).pathname).replace('/', '').toLowerCase()
+				let path = (p => p ? p : '')(url.parse(request.url).pathname).replace(/^\//, '').toLowerCase()
 				let isRawGraphqlQuery = path === ''
 				let isGraphiQlRequest = path === endpointURL.replace('/', '').toLowerCase()
 
@@ -379,4 +331,8 @@ function sendResponse(response, data) {
 	} else {
 		response.end(data)
 	}
+}
+
+module.exports = {
+	HttpHandler: GraphQlHandler
 }
