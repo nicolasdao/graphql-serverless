@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0-alpha.2"></a>
+# [0.2.0-alpha.2](https://github.com/nicolasdao/google-graphql-functions/compare/v0.1.0-alpha.1...v0.2.0-alpha.2) (2017-08-31)
+
+
+### Features
+
+* Redesign the project to expose the same functionalities through a webfunc HttpHandler. + Add more unit tests ([18b02f1](https://github.com/nicolasdao/google-graphql-functions/commit/18b02f1))
+
+
+
 <a name="0.1.0-alpha.1"></a>
 # 0.1.0-alpha.1 (2017-08-18)
 
