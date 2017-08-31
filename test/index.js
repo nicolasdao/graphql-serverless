@@ -7,7 +7,7 @@
 */
 const { assert } = require('chai')
 const httpMocks = require('node-mocks-http')
-const  { makeExecutableSchema } = require('graphql-tools')
+const { makeExecutableSchema } = require('graphql-tools')
 const { HttpHandler } = require('../src/index')
 const { serveHttp, app } = require('webfunc')
 
