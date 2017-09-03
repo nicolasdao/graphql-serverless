@@ -52,10 +52,13 @@ class GraphQlHandler extends HttpHandler {
 	}
 }
 
-const mergeGraphqlOptionsWithEndpoint = (graphqlOptions = {}, endpointPath = '/') =>
-	graphqlOptions.endpointURL
-		? Object.assign({}, graphqlOptions, { endpointURL: path.join(endpointPath, graphqlOptions.endpointURL) })
-		: graphqlOptions
+/*eslint-disable */
+const pathJoin = (path1, path2) => process.platform === 'win32' ? path.join(path1, path2).replace(/\\/g,'/') : path.join(path1, path2)
+/*eslint-enable */
+
+const mergeGraphqlOptionsWithEndpoint = (graphqlOptions = {}, endpointPath = '/') => graphqlOptions.endpointURL
+	? Object.assign({}, graphqlOptions, { endpointURL: pathJoin(endpointPath, graphqlOptions.endpointURL) })
+	: graphqlOptions
 
 function graphqlHTTP(options) {
 	if (!options) {
@@ -141,7 +144,7 @@ function graphqlHTTP(options) {
 			if (showGraphiQL && endpointURL) {
 				let path = (p => p ? p : '')(url.parse(request.url).pathname).replace(/^\//, '').toLowerCase()
 				let isRawGraphqlQuery = path === ''
-				let isGraphiQlRequest = path === endpointURL.replace('/', '').toLowerCase()
+				let isGraphiQlRequest = path === endpointURL.replace(/^\//, '').toLowerCase()
 
 				if (isRawGraphqlQuery) showGraphiQL = false
 
