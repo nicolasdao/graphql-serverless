@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0-alpha.6"></a>
+# [0.2.0-alpha.6](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.5...v0.2.0-alpha.6) (2017-09-03)
+
+
+
 <a name="0.2.0-alpha.5"></a>
 # [0.2.0-alpha.5](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.4...v0.2.0-alpha.5) (2017-09-03)
 
