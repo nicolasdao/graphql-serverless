@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0-alpha.7"></a>
+# [0.2.0-alpha.7](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.6...v0.2.0-alpha.7) (2017-12-12)
+
+
+### Features
+
+* Upgrade to latest version of webfunc ([3090081](https://github.com/nicolasdao/google-graphql-functions/commit/3090081))
+
+
+
 <a name="0.2.0-alpha.6"></a>
 # [0.2.0-alpha.6](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.5...v0.2.0-alpha.6) (2017-09-03)
 
