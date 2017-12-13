@@ -1,6 +1,6 @@
 {
   "name": "graphql-serverless",
-  "version": "0.2.0-alpha.9",
+  "version": "0.2.0-alpha.10",
   "description": "Create an GraphQL API (incl. GraphiQL UI) on Google Cloud Functions or Firebase Functions (AWS Lambda coming soon...).",
   "contributors": [
     "Nicolas Dao <nic@neap.co> (https://neap.co/)"
@@ -38,7 +38,7 @@
     "raw-body": "^2.2.0",
     "standard-version": "^4.2.0",
     "url": "^0.11.0",
-    "webfunc": "^0.8.0-alpha.0"
+    "webfunc": "^0.8.0-alpha.1"
   },
   "devDependencies": {
     "chai": "^4.1.0",
