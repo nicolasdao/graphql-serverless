@@ -41,7 +41,7 @@ describe('index', () =>
 			app.use(new HttpHandler({ schema: {} }))
 
 			const fn = serveHttp(app.resolve({
-				path: '/users/{graphiqlpath}',
+				path: '/users/:graphiqlpath',
 				handlerId: 'graphql'
 			}), appconfig)
 
@@ -94,7 +94,7 @@ describe('index', () =>
 			app.use(new HttpHandler({ schema: {}, endpointURL: '/graphiql' }))
 
 			const fn = serveHttp(app.resolve({
-				path: '/users/{username}',
+				path: ['/users/:username', '/users/:username/graphiql'],
 				handlerId: 'graphql'
 			}), appconfig)
 			
@@ -109,59 +109,10 @@ describe('index', () =>
 			return Promise.all([result_01, result_02])
 		})))
 
+
 /*eslint-disable */
 describe('index', () => 
 	describe('#serveHTTP: 03', () => 
-		it(`Should succeed regardless of the resource required if no routing is defined.`, () => {
-			/*eslint-enable */
-			const req_01 = httpMocks.createRequest({
-				method: 'GET',
-				headers: {
-					origin: 'http://localhost:8080',
-					referer: 'http://localhost:8080'
-				},
-				_parsedUrl: {
-					pathname: '/users/graphiql'
-				}
-			})
-			const res_01 = httpMocks.createResponse()
-			const req_02 = httpMocks.createRequest({
-				method: 'GET',
-				headers: {
-					origin: 'http://localhost:8080',
-					referer: 'http://localhost:8080'
-				}
-			})
-			const res_02 = httpMocks.createResponse()
-
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
-
-			app.reset()
-			app.use(new HttpHandler({ schema: {} }))
-			
-			const fn = serveHttp(app.resolve({ handlerId: 'graphql' }), appconfig)
-			
-			const result_01 = fn(req_01, res_01).then(() => {
-				assert.equal(res_01.statusCode, 200)
-			})
-			
-			const result_02 = fn(req_02, res_02).then(() => {
-				assert.equal(res_02.statusCode, 200)
-			})
-
-			return Promise.all([result_01, result_02])
-		})))
-
-/*eslint-disable */
-describe('index', () => 
-	describe('#serveHTTP: 04', () => 
 		it(`Should serve a graphiql interface`, () => {
 			/*eslint-enable */
 
@@ -234,7 +185,7 @@ describe('index', () =>
 			}
 			
 			const fn = serveHttp(app.resolve({ 
-				path: '/users',
+				path: ['/users', '/users/graphiql'],
 				handlerId: 'graphql' 
 			}), appconfig)
 
@@ -258,7 +209,7 @@ describe('index', () =>
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#serveHTTP: 05', () => 
+	describe('#serveHTTP: 04', () => 
 		it(`Should fail to serve any query if the graphiql is toggled but the path to access it is wrong.`, () => {
 			/*eslint-enable */
 
@@ -341,12 +292,12 @@ describe('index', () =>
 			}
 			
 			const fn = serveHttp(app.resolve({ 
-				path: '/',
+				path: ['/', '/graphiql'],
 				handlerId: 'graphql' 
 			}), appconfig)
 
 			const result_01 = fn(req_01, res_01).then(() => {
-				assert.equal(res_01.statusCode, 200)
+				assert.equal(res_01.statusCode, 404)
 				const headers = res_01._getHeaders()
 				assert.isOk(headers)
 				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
@@ -354,20 +305,7 @@ describe('index', () =>
 				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
 				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
-				assert.isOk(html)
-				assert.equal(typeof(html), 'string')
-				let htmlJson
-				try {
-					htmlJson = JSON.parse(html)
-				}
-				catch(err) {
-					assert.isOk(err)
-					htmlJson = null
-				}
-				assert.isOk(htmlJson, 'There should be a JSON response.')
-				assert.isOk(htmlJson.errors, `There should be a JSON response with an 'errors' property.`)
-				assert.isOk(htmlJson.errors.length > 0, `The 'errors' property of the JSON response should be an array with at least one element.`)
-				assert.equal(htmlJson.errors[0].message, `No GraphiQL endpoint found at 'users/graphiql'.`)
+				assert.equal(res_01._getData(), `Endpoint 'users/graphiql' for method GET not found.`)
 			})
 
 			return Promise.all([result_01])
@@ -375,7 +313,7 @@ describe('index', () =>
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#serveHTTP: 06', () => 
+	describe('#serveHTTP: 05', () => 
 		it(`Should serve GraphQL queries`, () => {
 			/*eslint-enable */
 
@@ -458,7 +396,7 @@ describe('index', () =>
 			}
 			
 			const fn = serveHttp(app.resolve({ 
-				path: '/users',
+				path: ['/users', '/users/graphiql'],
 				handlerId: 'graphql' 
 			}), appconfig)
 
