@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0-alpha.12"></a>
+# [0.2.0-alpha.12](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.11...v0.2.0-alpha.12) (2017-12-13)
+
+
+### Bug Fixes
+
+* Remove auto deploy in travis ([85e0cf2](https://github.com/nicolasdao/google-graphql-functions/commit/85e0cf2))
+
+
+
 <a name="0.2.0-alpha.11"></a>
 # [0.2.0-alpha.11](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.10...v0.2.0-alpha.11) (2017-12-13)
 
