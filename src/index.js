@@ -145,15 +145,10 @@ function graphqlHTTP(options) {
 				const pathname = (p => p ? p : '')(url.parse(request.url).pathname).replace(/^\//, '').toLowerCase()
 				const endpointsParts = endpointURL.toLowerCase().split('/').filter(x => x && x != '/')
 				const pathnameLastParts = pathname.split('/').filter(x => x && x != '/').slice(-endpointsParts.length)
-				const isRawGraphqlQuery = pathname === ''
 				const isGraphiQlRequest = pathnameLastParts.join('_._') == endpointsParts.join('_._')
-
-				if (isRawGraphqlQuery) showGraphiQL = false
-
-				if (!isRawGraphqlQuery && !isGraphiQlRequest) {
+				
+				if (!isGraphiQlRequest)
 					showGraphiQL = false
-					throw httpError(404, `No GraphiQL endpoint found at '${pathname}'.`)
-				}
 			}
 
 			// If there is no query, but GraphiQL will be displayed, do not produce
