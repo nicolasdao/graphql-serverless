@@ -26,7 +26,7 @@ npm start
 
 gimpy will ask you a few questions that you are free to ignore if you don't intend to host it in a serverless environment just yet. ```npm start``` will simply deploy your _hello world_ GraphQL API locally. 
 
-If you have ansewered the questions about your serverless hosting environment, then you can simply run the following to deploy it there:
+If you have answered the questions about your serverless hosting environment, then you can simply run the following to deploy it there:
 ```
 gimp deploy build
 ``` 
