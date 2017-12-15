@@ -38,7 +38,7 @@
     "raw-body": "^2.2.0",
     "standard-version": "^4.2.0",
     "url": "^0.11.0",
-    "webfunc": "^0.8.0-alpha.1"
+    "webfunc": "^0.8.0-alpha.2"
   },
   "devDependencies": {
     "chai": "^4.1.0",
