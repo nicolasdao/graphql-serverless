@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0"></a>
+# [0.2.0](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.13...v0.2.0) (2017-12-29)
+
+
+### Features
+
+* Upgrade to latest webfunc and make it compatible with express + add Facebook patent ([9784a6a](https://github.com/nicolasdao/google-graphql-functions/commit/9784a6a))
+
+
+
 <a name="0.2.0-alpha.13"></a>
 # [0.2.0-alpha.13](https://github.com/nicolasdao/google-graphql-functions/compare/v0.2.0-alpha.12...v0.2.0-alpha.13) (2017-12-14)
 
