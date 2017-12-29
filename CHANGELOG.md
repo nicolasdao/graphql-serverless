@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.3.1-alpha.2"></a>
+## [0.3.1-alpha.2](https://github.com/nicolasdao/google-graphql-functions/compare/v0.3.1-alpha.1...v0.3.1-alpha.2) (2017-12-29)
+
+
+### Bug Fixes
+
+* Remove unecessary dependencies ([c5fa1e5](https://github.com/nicolasdao/google-graphql-functions/commit/c5fa1e5))
+
+
+
 <a name="0.3.1-alpha.1"></a>
 ## [0.3.1-alpha.1](https://github.com/nicolasdao/google-graphql-functions/compare/v0.3.1-alpha.0...v0.3.1-alpha.1) (2017-12-29)
 
