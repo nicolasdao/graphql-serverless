@@ -8,12 +8,12 @@
 const { assert } = require('chai')
 const httpMocks = require('node-mocks-http')
 const { makeExecutableSchema } = require('graphql-tools')
-const { HttpHandler } = require('../src/index')
-const { serveHttp, app } = require('webfunc')
+const { graphqlHandler } = require('../src/index')
+const { app } = require('webfunc')
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#serveHTTP: 01', () => 
+	describe('#handleEvent: 01', () => 
 		it(`Should fail if the query does not match the specified routing.`, () => {
 			/*eslint-enable */
 			const req_01 = httpMocks.createRequest({
@@ -38,16 +38,13 @@ describe('index', () =>
 			}
 
 			app.reset()
-			app.use(new HttpHandler({ schema: {} }))
+			app.use(appconfig)
+			app.all('/users/:graphiqlpath', graphqlHandler({ schema: {} }), () => null)
+			const fn = app.handleEvent()
 
-			const fn = serveHttp(app.resolve({
-				path: '/users/:graphiqlpath',
-				handlerId: 'graphql'
-			}), appconfig)
-
-			const result_01 = fn(req_01, res_01).then(({ req, res }) => {
-				assert.equal(res.statusCode, 404)
-				assert.equal(res._getData(), `Endpoint '/' for method GET not found.`)
+			const result_01 = fn(req_01, res_01).then(() => {
+				assert.equal(res_01.statusCode, 404)
+				assert.equal(res_01._getData(), `Endpoint '/' for method GET not found.`)
 			})
 
 			return Promise.all([result_01])
@@ -55,7 +52,7 @@ describe('index', () =>
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#serveHTTP: 02', () => 
+	describe('#handleEvent: 02', () => 
 		it(`Should succeed if the query matches the specified routing.`, () => {
 			/*eslint-enable */
 			const req_01 = httpMocks.createRequest({
@@ -91,12 +88,9 @@ describe('index', () =>
 			}
 
 			app.reset()
-			app.use(new HttpHandler({ schema: {}, endpointURL: '/graphiql' }))
-
-			const fn = serveHttp(app.resolve({
-				path: ['/users/:username', '/users/:username/graphiql'],
-				handlerId: 'graphql'
-			}), appconfig)
+			app.use(appconfig)
+			app.all(['/users/:username', '/users/:username/graphiql'], graphqlHandler({ schema: {}, endpointURL: '/graphiql' }), () => null)
+			const fn = app.handleEvent()
 			
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
@@ -112,7 +106,7 @@ describe('index', () =>
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#serveHTTP: 03', () => 
+	describe('#handleEvent: 03', () => 
 		it(`Should serve a graphiql interface`, () => {
 			/*eslint-enable */
 
@@ -159,9 +153,6 @@ describe('index', () =>
 				endpointURL: "/graphiql"
 			}
 
-			app.reset()
-			app.use(new HttpHandler(graphqlOptions))
-
 			const req_01 = httpMocks.createRequest({
 				method: 'GET',
 				headers: {
@@ -183,11 +174,11 @@ describe('index', () =>
 					'Access-Control-Max-Age': '1296000'
 				}
 			}
-			
-			const fn = serveHttp(app.resolve({ 
-				path: ['/users', '/users/graphiql'],
-				handlerId: 'graphql' 
-			}), appconfig)
+
+			app.reset()
+			app.use(appconfig)
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
@@ -209,7 +200,7 @@ describe('index', () =>
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#serveHTTP: 04', () => 
+	describe('#handleEvent: 04', () => 
 		it(`Should fail to serve any query if the graphiql is toggled but the path to access it is wrong.`, () => {
 			/*eslint-enable */
 
@@ -256,9 +247,6 @@ describe('index', () =>
 				endpointURL: "/graphiql"
 			}
 
-			app.reset()
-			app.use(new HttpHandler(graphqlOptions))
-
 			const uri = 'users/graphiql'
 			const req_01 = httpMocks.createRequest({
 				method: 'GET',
@@ -290,11 +278,11 @@ describe('index', () =>
 					'Access-Control-Max-Age': '1296000'
 				}
 			}
-			
-			const fn = serveHttp(app.resolve({ 
-				path: ['/', '/graphiql'],
-				handlerId: 'graphql' 
-			}), appconfig)
+
+			app.reset()
+			app.use(appconfig)
+			app.all(['/', '/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 404)
@@ -313,7 +301,7 @@ describe('index', () =>
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#serveHTTP: 05', () => 
+	describe('#handleEvent: 05', () => 
 		it(`Should serve GraphQL queries`, () => {
 			/*eslint-enable */
 
@@ -360,9 +348,6 @@ describe('index', () =>
 				endpointURL: "/graphiql"
 			}
 
-			app.reset()
-			app.use(new HttpHandler(graphqlOptions))
-
 			const uri = 'users/graphiql'
 			const req_01 = httpMocks.createRequest({
 				method: 'GET',
@@ -394,11 +379,11 @@ describe('index', () =>
 					'Access-Control-Max-Age': '1296000'
 				}
 			}
-			
-			const fn = serveHttp(app.resolve({ 
-				path: ['/users', '/users/graphiql'],
-				handlerId: 'graphql' 
-			}), appconfig)
+
+			app.reset()
+			app.use(appconfig)
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)

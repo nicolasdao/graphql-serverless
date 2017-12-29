@@ -19,46 +19,27 @@
 
 const accepts = require('accepts')
 const graphql = require('graphql')
-const { routing, HttpHandler } = require('webfunc')
 const httpError = require('http-errors')
 const url = require('url')
-const path = require('path')
 
 const parseBody = require('./parseBody')
 const renderGraphiQL = require('./renderGraphiQL')
 
-class GraphQlHandler extends HttpHandler {
-	constructor(options, control) { super(options, control) }
-	get id() { return 'graphql' }
+const graphqlHandler = options => {
+	if (!options)
+		throw new Error('Missing required argument. A graphql handler must accept an \'options\' object')
 
-	process(req, res, params, route) {
-		return super.control(req, res, { request: params, get options() { return super.options }, err: null })
-			.then(graphQlOptions => {
-				const options = graphQlOptions || super.options
-				const httpEndpoint = ((req._parsedUrl || {}).pathname || '/').toLowerCase()
-				const endpoint = route ? ((routing.matchRoute(httpEndpoint, route) || {}).match || '/') : '/'
-				if (!res.headersSent) {
-					if (!options) 
-						throw httpError(500, 'GraphQL middleware requires getOptions.')
-					else {
-						const optionsWithNewGraphiqlUri = mergeGraphqlOptionsWithEndpoint(options, endpoint)
-						const httpHandler = graphqlHTTP(optionsWithNewGraphiqlUri)
-						if (!httpHandler)
-							throw httpError(500, 'GraphQL middleware requires a valid \'getOptions\' argument.')
-						return httpHandler(req, res)
-					}
-				}
-			})
+	return (req, res, next) => {
+		if (!res.headersSent) {
+			const httpHandler = graphqlHTTP(options)
+			if (!httpHandler)
+				throw httpError(500, 'GraphQL middleware requires a valid \'getOptions\' argument.')
+			return httpHandler(req, res).then(() => next())
+		}
+		else
+			next()
 	}
 }
-
-/*eslint-disable */
-const pathJoin = (path1, path2) => process.platform === 'win32' ? path.join(path1, path2).replace(/\\/g,'/') : path.join(path1, path2)
-/*eslint-enable */
-
-const mergeGraphqlOptionsWithEndpoint = (graphqlOptions = {}, endpointPath = '/') => graphqlOptions.endpointURL
-	? Object.assign({}, graphqlOptions, { endpointURL: pathJoin(endpointPath, graphqlOptions.endpointURL) })
-	: graphqlOptions
 
 function graphqlHTTP(options) {
 	if (!options) {
@@ -334,5 +315,5 @@ function sendResponse(response, data) {
 }
 
 module.exports = {
-	HttpHandler: GraphQlHandler
+	graphqlHandler
 }
