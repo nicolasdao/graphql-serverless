@@ -1,13 +1,5 @@
-<a href="https://neap.co" target="_blank"><img src="https://neap.co/img/neap_color_horizontal.png" alt="Neap Pty Ltd logo" title="Neap" height="100" width="225" style="float: right" align="right" /></a>
-
-# GraphQL For Serverless
+# GraphQL For Serverless &middot;  [![NPM](https://img.shields.io/npm/v/graphql-serverless.svg?style=flat)](https://www.npmjs.com/package/graphql-serverless) [![Tests](https://travis-ci.org/nicolasdao/graphql-serverless.svg?branch=master)](https://travis-ci.org/nicolasdao/graphql-serverless) [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause) [![Neap](https://neap.co/img/made_by_neap.svg)](#this-is-what-we-re-up-to)
 #### (Google Cloud Functions & Firebase (AWS Lambda coming soon...))
-[![NPM][1]][2] [![Tests][3]][4]
-
-[1]: https://img.shields.io/npm/v/graphql-serverless.svg?style=flat
-[2]: https://www.npmjs.com/package/graphql-serverless
-[3]: https://travis-ci.org/nicolasdao/graphql-serverless.svg?branch=master
-[4]: https://travis-ci.org/nicolasdao/graphql-serverless
 
 The easiest way to start a GraphQL API (including an optional GraphiQL interface) hosted on either Google Cloud Functions or Firebase Functions (AWS Lambda coming soon). _**graphql-serverless**_ is a HTTP handler for [_**webfunc**_](https://github.com/nicolasdao/webfunc), a lightweight serverless web framework.
 
@@ -91,13 +83,13 @@ app.use(new HttpHandler(graphqlOptions))
 exports.main = serveHttp(app.resolve({ path: '/', handlerId: 'graphql' }))
 ```
 
-
 ## Contributing
 ```
 npm test
 ```
 
 ## This Is What We re Up To
+<a href="https://neap.co" target="_blank"><img src="https://neap.co/img/neap_color_horizontal.png" alt="Neap Pty Ltd logo" title="Neap" height="89" width="200" style="float: right" align="right" /></a>
 We are Neap, an Australian Technology consultancy powering the startup ecosystem in Sydney. We simply love building Tech and also meeting new people, so don't hesitate to connect with us at [https://neap.co](https://neap.co).
 
 ## Annexes
@@ -117,7 +109,7 @@ _**To host using Google Firebase Functions:**_
 
 
 ## License
-Copyright (c) 2017, Neap Pty Ltd.
+Copyright (c) 2018, Neap Pty Ltd.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
