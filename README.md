@@ -1,39 +1,48 @@
 # GraphQL For Serverless &middot;  [![NPM](https://img.shields.io/npm/v/graphql-serverless.svg?style=flat)](https://www.npmjs.com/package/graphql-serverless) [![Tests](https://travis-ci.org/nicolasdao/graphql-serverless.svg?branch=master)](https://travis-ci.org/nicolasdao/graphql-serverless) [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause) [![Neap](https://neap.co/img/made_by_neap.svg)](#this-is-what-we-re-up-to)
-#### (Google Cloud Functions & Firebase (AWS Lambda coming soon...))
 
-The easiest way to start a GraphQL API (including an optional GraphiQL interface) hosted on either Google Cloud Functions or Firebase Functions (AWS Lambda coming soon). _**graphql-serverless**_ is a HTTP handler for [_**webfunc**_](https://github.com/nicolasdao/webfunc), a lightweight serverless web framework.
+__*graphql-serverless*__ is a middleware for [_**webfunc**_](https://github.com/nicolasdao/webfunc), that allows to deploy [GraphQL](http://graphql.org/learn/) apis (including an optional [GraphiQL interface](https://github.com/graphql/graphiql)) to the most popular serverless platforms:
+- [Zeit Now](https://zeit.co/now) (using express under the hood)
+- [Google Cloud Functions](https://cloud.google.com/functions/) (incl. Firebase Function)
+- [AWS Lambdas](https://aws.amazon.com/lambda) (COMING SOON...)
+- [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) (COMING SOON...)
 
-_**Why this project?**_ We just wanted to start any pro-project or personal project in less than 1 minute; from your dev. machine to a live server. We also wanted a hosting environment that could scale and have a solid free tier offering. That explains why we choosed Google Cloud Functions as our first hosting environment (Firebase was a natural progression but its free tier is more restrictive).
+Copy/paste the following in your terminal if you want to run your first GraphQL api ([http://localhost:4000](http://localhost:4000)) including a GraphiQL interface ([http://localhost:4000/graphiql](http://localhost:4000/graphiql)) on your local machine in less than 30 seconds:
 
-## How To Use It
-First make sure you have all the [deployment tools required to deploy your project](#deployment-prerequisites). Then, you can either install it using a template (the easiest and fastest way), or by manually including it in one of your own serverless project. 
-### Install Using A Template
-Simply use [_**gimpy**_](https://github.com/nicolasdao/gimpy). If you haven't installed it yet, run ```npm install gimpy -g```.
 ```
-gimp new graphql-serverless your-app 
-cd your-app
-npm install
-npm start
+git clone https://github.com/nicolasdao/graphql-universal-server.git; \
+cd graphql-universal-server; \
+npm install; \
+npm start 
 ```
 
-gimpy will ask you a few questions that you are free to ignore if you don't intend to host it in a serverless environment just yet. ```npm start``` will simply deploy your _hello world_ GraphQL API locally. 
+Deploying that api to [Zeit Now](https://zeit.co/now) will take between 15 seconds to 1.5 minute (depending on whether you need to login/creating a free Zeit account or not).
 
-If you have answered the questions about your serverless hosting environment, then you can simply run the following to deploy it there:
+_If you haven't installed Zeit now-CLI yet or you need to login/create an account, then copy/paste this in your terminal:_
 ```
-gimp deploy build
-``` 
+npm install now -g; \
+now login; \
+npm run deploy:prod
+```
 
-### Install Inside Your Own Serverless Project 
+The above will work the exact same way whether you have an account or not. This is free, so don't worry about it.
 
+_If you're already logged in, then simply run this:_
+```
+npm run deploy:prod
+```
+
+# Install
 ```
 npm install webfunc graphql-serverless --save
 ```
-In your _index.js_ code:
+
+# How To Use It
+Using the template above (i.e. [graphql-universal-server](https://github.com/nicolasdao/graphql-universal-server.git)) is the easiest way to start a new GraphQL project from scratch. However, if you really want to start on a blank page, simply create an index.js as follow:
 
 ```js
-const { makeExecutableSchema } = require('graphql-tools')
-const { HttpHandler } = require('graphql-serverless')
-const { serveHttp, app } = require('webfunc')
+const { graphqlHandler } = require('graphql-serverless')
+const { app } = require('webfunc')
+const { makeExecutableSchema } = require('graphql-tools') // this dependency is automatically included in 'graphql-serverless'
 
 const schema = `
   type Product {
@@ -75,40 +84,54 @@ const executableSchema = makeExecutableSchema({
 const graphqlOptions = {
   schema: executableSchema,
   graphiql: true,
-  endpointURL: "/graphiql"
+  endpointURL: '/graphiql',
+  context: {} // add whatever global context is relevant to you app
 }
 
-app.use(new HttpHandler(graphqlOptions))
+app.all(['/', '/graphiql'], graphqlHandler(graphqlOptions), () => null)
 
-exports.main = serveHttp(app.resolve({ path: '/', handlerId: 'graphql' }))
+eval(app.listen('app', 4000))
 ```
+
+Then simply run:
+```
+node index.js
+```
+
+This will serve 2 endpoints:
+
+- [http://localhost:4000](http://localhost:4000): This is the GraphQL endpoint that your client can start querying.
+- [http://localhost:4000/graphiql](http://localhost:4000/graphiql): This is the GraphiQL Web UI that you can use to test and query your GraphQL server. 
+
+>If you need best practices on how to structure your GraphQL project, clone the [graphql-universal-server](https://github.com/nicolasdao/graphql-universal-server.git) project and see by yourself. 
 
 ## Contributing
 ```
 npm test
 ```
 
-## This Is What We re Up To
-<a href="https://neap.co" target="_blank"><img src="https://neap.co/img/neap_color_horizontal.png" alt="Neap Pty Ltd logo" title="Neap" height="89" width="200" style="float: right" align="right" /></a>
+# This Is What We re Up To
 We are Neap, an Australian Technology consultancy powering the startup ecosystem in Sydney. We simply love building Tech and also meeting new people, so don't hesitate to connect with us at [https://neap.co](https://neap.co).
 
-## Annexes
-### Deployment Prerequisites
-Make sure you have the following tools installed on your local machine:
+Our other open-sourced projects:
+#### Web Framework & Deployment Tools
+* [__*webfunc*__](https://github.com/nicolasdao/webfunc): Write code for serverless similar to Express once, deploy everywhere. 
+* [__*now-flow*__](https://github.com/nicolasdao/now-flow): Automate your Zeit Now Deployments.
 
-_**To host using Google Cloud Functions:**_
-- [gcloud](https://cloud.google.com/sdk/gcloud/) - Needed to run the local emulator as well as to deploy your function to Google Cloud.
-- gcloud beta components - As of August 2017, Google Cloud Functions is still in beta, so you need the beta components.
-  ```gcloud components install beta```
-- [Google Cloud Functions Emulator](https://github.com/GoogleCloudPlatform/cloud-functions-emulator) - Needed to run your project locally.
-  ```npm install -g @google-cloud/functions-emulator```
+#### GraphQL
+* [__*graphql-serverless*__](https://github.com/nicolasdao/graphql-serverless): GraphQL (incl. a GraphiQL interface) middleware for [webfunc](https://github.com/nicolasdao/webfunc).
+* [__*schemaglue*__](https://github.com/nicolasdao/schemaglue): Naturally breaks down your monolithic graphql schema into bits and pieces and then glue them back together.
+* [__*graphql-s2s*__](https://github.com/nicolasdao/graphql-s2s): Add GraphQL Schema support for type inheritance, generic typing, metadata decoration. Transpile the enriched GraphQL string schema into the standard string schema understood by graphql.js and the Apollo server client.
 
-_**To host using Google Firebase Functions:**_
-- [firebase-tools](https://github.com/firebase/firebase-tools) - Needed to run your project locally as well as to deploy it to firebase.
-  ```npm install -g firebase-tools```
+#### React & React Native
+* [__*react-native-game-engine*__](https://github.com/bberak/react-native-game-engine): A lightweight game engine for react native.
+* [__*react-native-game-engine-handbook*__](https://github.com/bberak/react-native-game-engine-handbook): A React Native app showcasing some examples using react-native-game-engine.
+
+#### Tools
+* [__*aws-cloudwatch-logger*__](https://github.com/nicolasdao/aws-cloudwatch-logger): Promise based logger for AWS CloudWatch LogStream.
 
 
-## License
+# License
 Copyright (c) 2018, Neap Pty Ltd.
 All rights reserved.
 
@@ -127,3 +150,5 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+<p align="center"><a href="https://neap.co" target="_blank"><img src="https://neap.co/img/neap_color_horizontal.png" alt="Neap Pty Ltd logo" title="Neap" height="89" width="200"/></a></p>
