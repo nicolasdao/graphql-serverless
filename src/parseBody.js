@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Neap pty ltd.
+ * Copyright (c) 2018, Neap pty ltd.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the

@@ -15,6 +15,11 @@ npm install; \
 npm start 
 ```
 
+This will serve 2 endpoints:
+
+- [http://localhost:4000](http://localhost:4000): This is the GraphQL endpoint that your client can start querying.
+- [http://localhost:4000/graphiql](http://localhost:4000/graphiql): This is the GraphiQL Web UI that you can use to test and query your GraphQL server. 
+
 Deploying that api to [Zeit Now](https://zeit.co/now) will take between 15 seconds to 1.5 minute (depending on whether you need to login/creating a free Zeit account or not).
 
 _If you haven't installed Zeit now-CLI yet or you need to login/create an account, then copy/paste this in your terminal:_

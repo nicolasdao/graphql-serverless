@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Neap pty ltd.
+ * Copyright (c) 2018, Neap pty ltd.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -23,7 +23,7 @@ const httpError = require('http-errors')
 const url = require('url')
 
 const parseBody = require('./parseBody')
-const renderGraphiQL = require('./renderGraphiQL')
+const { renderGraphiQL } = require('./renderGraphiQL')
 
 const graphqlHandler = options => {
 	if (!options)
@@ -64,6 +64,7 @@ function graphqlHTTP(options) {
 		let validationRules
 		let endpointURL
 		let schemaAST
+		let graphiQlOptions
 
 		// Promises are used as a mechanism for capturing any thrown errors during
 		// the asynchronous process below.
@@ -101,6 +102,7 @@ function graphqlHTTP(options) {
 			extensionsFn = optionsData.extensions
 			endpointURL = optionsData.endpointURL
 			schemaAST = optionsData.schemaAST
+			graphiQlOptions = optionsData.graphiQlOptions
 
 			validationRules = graphql.specifiedRules
 			if (optionsData.validationRules) {
@@ -233,7 +235,7 @@ function graphqlHTTP(options) {
 			}
 			// If allowed to show GraphiQL, present it instead of JSON.
 			if (showGraphiQL) {
-				const payload = renderGraphiQL({ query, variables, operationName, result, schemaAST })
+				const payload = renderGraphiQL({ query, variables, operationName, result, schemaAST }, graphiQlOptions)
 				response.setHeader('Content-Type', 'text/html; charset=utf-8')
 				sendResponse(response, payload)
 			} else {
@@ -264,7 +266,7 @@ function getGraphQLParams(request) {
  */
 function parseGraphQLParams(urlData, bodyData) {
 	// GraphQL Query string.
-	let query = urlData.query || bodyData.query
+	let query = bodyData.query || urlData.query
 	if (typeof query !== 'string') {
 		query = null
 	}
@@ -282,7 +284,7 @@ function parseGraphQLParams(urlData, bodyData) {
 	}
 
 	// Name of GraphQL operation to execute.
-	let operationName = urlData.operationName || bodyData.operationName
+	let operationName = bodyData.operationName || urlData.operationName
 	if (typeof operationName !== 'string') {
 		operationName = null
 	}
