@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0-alpha.0"></a>
+# [0.4.0-alpha.0](https://github.com/nicolasdao/google-graphql-functions/compare/v0.3.1-alpha.5...v0.4.0-alpha.0) (2018-01-09)
+
+
+### Features
+
+* Add support to customize the graphiql interface ([66b9d3a](https://github.com/nicolasdao/google-graphql-functions/commit/66b9d3a))
+
+
+
 <a name="0.3.1-alpha.5"></a>
 ## [0.3.1-alpha.5](https://github.com/nicolasdao/google-graphql-functions/compare/v0.3.1-alpha.4...v0.3.1-alpha.5) (2018-01-04)
 
