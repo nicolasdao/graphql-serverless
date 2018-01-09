@@ -252,7 +252,6 @@ function graphqlHTTP(options) {
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the GraphQL request parameters.
  */
-exports.getGraphQLParams = getGraphQLParams
 
 function getGraphQLParams(request) {
 	return parseBody(request).then(bodyData => {
@@ -316,6 +315,9 @@ function sendResponse(response, data) {
 	}
 }
 
+const isGraphiQLRequest = (req) => getGraphQLParams(req).then(params => canDisplayGraphiQL(req, params))
+
 module.exports = {
-	graphqlHandler
+	graphqlHandler,
+	isGraphiQLRequest
 }
