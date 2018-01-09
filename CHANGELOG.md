@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0-alpha.1"></a>
+# [0.4.0-alpha.1](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.0...v0.4.0-alpha.1) (2018-01-09)
+
+
+### Bug Fixes
+
+* GraphiQL starts with an undefined variable ([7082f5c](https://github.com/nicolasdao/google-graphql-functions/commit/7082f5c))
+
+
+
 <a name="0.4.0-alpha.0"></a>
 # [0.4.0-alpha.0](https://github.com/nicolasdao/google-graphql-functions/compare/v0.3.1-alpha.5...v0.4.0-alpha.0) (2018-01-09)
 
