@@ -97,12 +97,14 @@ function graphqlHTTP(options) {
 			context = optionsData.context || request
 			rootValue = optionsData.rootValue
 			pretty = optionsData.pretty
-			graphiql = optionsData.graphiql
+			graphiql = optionsData.graphiql ? true : false
 			formatErrorFn = optionsData.formatError
 			extensionsFn = optionsData.extensions
 			endpointURL = optionsData.endpointURL
 			schemaAST = optionsData.schemaAST
-			graphiQlOptions = optionsData.graphiqlOptions
+			graphiQlOptions = optionsData.graphiql != undefined && typeof(optionsData.graphiql) == 'object' ? optionsData.graphiql : {}
+			if (graphiQlOptions.toggle == false)
+				graphiql = false
 
 			validationRules = graphql.specifiedRules
 			if (optionsData.validationRules) {
