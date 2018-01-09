@@ -236,10 +236,10 @@ const renderGraphiQL = (data, custom={}) => {
 				onEditQuery: onEditQuery,
 				onEditVariables: onEditVariables,
 				onEditOperationName: onEditOperationName,
-				query: '${safeSerialize(queryString)}',
-				response: '${safeSerialize(resultString)}',
-				variables: '${safeSerialize(variablesString)}',
-				operationName: '${safeSerialize(operationName)}',
+				query: ${safeSerialize(queryString)},
+				response: ${safeSerialize(resultString)},
+				variables: ${safeSerialize(variablesString)},
+				operationName: ${safeSerialize(operationName)},
 			}),
 			document.body
 			);
