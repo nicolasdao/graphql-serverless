@@ -180,7 +180,11 @@ const renderGraphiQL = (data, custom={}) => {
 			var fetchURL = locationQuery(otherParams);
 
 			function updateHeaders(${onRequestArgs}) {
-				${onRequest}
+				function execLambda() {
+					${onRequest}	
+				}
+				execLambda()
+				return arguments[0]
 			}
 
 			function getHeaders() {

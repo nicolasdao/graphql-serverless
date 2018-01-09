@@ -102,7 +102,7 @@ function graphqlHTTP(options) {
 			extensionsFn = optionsData.extensions
 			endpointURL = optionsData.endpointURL
 			schemaAST = optionsData.schemaAST
-			graphiQlOptions = optionsData.graphiQlOptions
+			graphiQlOptions = optionsData.graphiqlOptions
 
 			validationRules = graphql.specifiedRules
 			if (optionsData.validationRules) {
