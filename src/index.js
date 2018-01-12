@@ -41,6 +41,10 @@ const graphqlHandler = options => {
 	}
 }
 
+// Though this may seem completely stupid to list a combination of potential empty queries rather than 
+// escaping the original query, empty queries are such an exception that escaping all freaking 
+// queries just for that rare occasion seems too expensive.
+const _basicEmptyQueries = {'query{}': true,'query{\n}': true,'query{ \n}': true,'query{ }': true,'query {}': true,'query {\n}': true,'query { \n}': true,'query { }': true,'mutation{}': true,'mutation{\n}': true,'mutation{ \n}': true,'mutation{ }': true,'mutation {}': true,'mutation {\n}': true,'mutation { \n}': true,'mutation { }': true,'subscription{}': true,'subscription{\n}': true,'subscription{ \n}': true,'subscription{ }': true,'subscription {}': true,'subscription {\n}': true,'subscription { \n}': true,'subscription { }': true}
 function graphqlHTTP(options) {
 	if (!options) {
 		throw new Error('GraphQL middleware requires options.')
@@ -65,6 +69,7 @@ function graphqlHTTP(options) {
 		let endpointURL
 		let schemaAST
 		let graphiQlOptions
+		let onResponse
 
 		// Promises are used as a mechanism for capturing any thrown errors during
 		// the asynchronous process below.
@@ -105,6 +110,11 @@ function graphqlHTTP(options) {
 			graphiQlOptions = optionsData.graphiql != undefined && typeof(optionsData.graphiql) == 'object' ? optionsData.graphiql : {}
 			if (graphiQlOptions.toggle == false)
 				graphiql = false
+			onResponse = optionsData.onResponse && typeof(optionsData.onResponse) == 'function'
+				? (req, res, result) => Promise.resolve(optionsData.onResponse(req, res, result))
+				/*eslint-disable */
+				: (req, res, result) => Promise.resolve(result)
+				/*eslint-enable */
 
 			validationRules = graphql.specifiedRules
 			if (optionsData.validationRules) {
@@ -122,89 +132,93 @@ function graphqlHTTP(options) {
 		}).then(params => {
 			// Get GraphQL params from the request and POST body data.
 			query = params.query
-			variables = params.variables
-			operationName = params.operationName && params.operationName != 'undefined' ? params.operationName : null
-			showGraphiQL = graphiql && canDisplayGraphiQL(request, params)
+			if (!_basicEmptyQueries[query]) {
+				variables = params.variables
+				operationName = params.operationName && params.operationName != 'undefined' ? params.operationName : null
+				showGraphiQL = graphiql && canDisplayGraphiQL(request, params)
 
-			if (showGraphiQL && endpointURL) {
-				const pathname = (p => p ? p : '')(url.parse(request.url).pathname).replace(/^\//, '').toLowerCase()
-				const endpointsParts = endpointURL.toLowerCase().split('/').filter(x => x && x != '/')
-				const pathnameLastParts = pathname.split('/').filter(x => x && x != '/').slice(-endpointsParts.length)
-				const isGraphiQlRequest = pathnameLastParts.join('_._') == endpointsParts.join('_._')
-				
-				if (!isGraphiQlRequest)
-					showGraphiQL = false
-			}
-
-			// If there is no query, but GraphiQL will be displayed, do not produce
-			// a result, otherwise return a 400: Bad Request.
-			if (!query) {
-				if (showGraphiQL) {
-					return null
+				if (showGraphiQL && endpointURL) {
+					const pathname = (p => p ? p : '')(url.parse(request.url).pathname).replace(/^\//, '').toLowerCase()
+					const endpointsParts = endpointURL.toLowerCase().split('/').filter(x => x && x != '/')
+					const pathnameLastParts = pathname.split('/').filter(x => x && x != '/').slice(-endpointsParts.length)
+					const isGraphiQlRequest = pathnameLastParts.join('_._') == endpointsParts.join('_._')
+					
+					if (!isGraphiQlRequest)
+						showGraphiQL = false
 				}
-				throw httpError(400, 'Must provide query string.')
-			}
 
-			// GraphQL source.
-			const source = new graphql.Source(query, 'GraphQL request')
-
-			// Parse source to AST, reporting any syntax error.
-			try {
-				documentAST = graphql.parse(source)
-			} catch (syntaxError) {
-				// Return 400: Bad Request if any syntax errors errors exist.
-				response.statusCode = 400
-				return { errors: [syntaxError] }
-			}
-
-			// Validate AST, reporting any errors.
-			const validationErrors = graphql.validate(schema, documentAST, validationRules)
-			if (validationErrors.length > 0) {
-				// Return 400: Bad Request if any validation errors exist.
-				response.statusCode = 400
-				return { errors: validationErrors }
-			}
-
-			// Only query operations are allowed on GET requests.
-			if (request.method === 'GET') {
-				// Determine if this GET request will perform a non-query.
-				const operationAST = graphql.getOperationAST(documentAST, operationName)
-				if (operationAST && operationAST.operation !== 'query') {
-					// If GraphiQL can be shown, do not perform this query, but
-					// provide it to GraphiQL so that the requester may perform it
-					// themselves if desired.
+				// If there is no query, but GraphiQL will be displayed, do not produce
+				// a result, otherwise return a 400: Bad Request.
+				if (!query) {
 					if (showGraphiQL) {
 						return null
 					}
+					throw httpError(400, 'Must provide query string.')
+				}
 
-					// Otherwise, report a 405: Method Not Allowed error.
-					response.setHeader('Allow', 'POST')
-					throw httpError(
-						405,
-						`Can only perform a ${operationAST.operation} operation ` +
-																								'from a POST request.'
+				// GraphQL source.
+				const source = new graphql.Source(query, 'GraphQL request')
+
+				// Parse source to AST, reporting any syntax error.
+				try {
+					documentAST = graphql.parse(source)
+				} catch (syntaxError) {
+					// Return 400: Bad Request if any syntax errors errors exist.
+					response.statusCode = 400
+					return { errors: [syntaxError] }
+				}
+
+				// Validate AST, reporting any errors.
+				const validationErrors = graphql.validate(schema, documentAST, validationRules)
+				if (validationErrors.length > 0) {
+					// Return 400: Bad Request if any validation errors exist.
+					response.statusCode = 400
+					return { errors: validationErrors }
+				}
+
+				// Only query operations are allowed on GET requests.
+				if (request.method === 'GET') {
+					// Determine if this GET request will perform a non-query.
+					const operationAST = graphql.getOperationAST(documentAST, operationName)
+					if (operationAST && operationAST.operation !== 'query') {
+						// If GraphiQL can be shown, do not perform this query, but
+						// provide it to GraphiQL so that the requester may perform it
+						// themselves if desired.
+						if (showGraphiQL) {
+							return null
+						}
+
+						// Otherwise, report a 405: Method Not Allowed error.
+						response.setHeader('Allow', 'POST')
+						throw httpError(
+							405,
+							`Can only perform a ${operationAST.operation} operation ` +
+																									'from a POST request.'
+						)
+					}
+				}
+				// Perform the execution, reporting any errors creating the context.
+				try {
+					return graphql.execute(
+						schema,
+						documentAST,
+						rootValue,
+						context,
+						variables,
+						operationName
 					)
+				} catch (contextError) {
+					// Return 400: Bad Request if any execution context errors exist.
+					response.statusCode = 400
+					return { errors: [contextError] }
 				}
 			}
-			// Perform the execution, reporting any errors creating the context.
-			try {
-				return graphql.execute(
-					schema,
-					documentAST,
-					rootValue,
-					context,
-					variables,
-					operationName
-				)
-			} catch (contextError) {
-				// Return 400: Bad Request if any execution context errors exist.
-				response.statusCode = 400
-				return { errors: [contextError] }
-			}
+			else
+				return { ___empty: true, data: {} }
 		}).then(result => {
 			// Collect and apply any metadata extensions if a function was provided.
 			// http://facebook.github.io/graphql/#sec-Response-Format
-			if (result && extensionsFn) {
+			if (result && extensionsFn && !result.___empty) {
 				return Promise.resolve(extensionsFn({
 					document: documentAST,
 					variables,
@@ -223,57 +237,90 @@ function graphqlHTTP(options) {
 			response.statusCode = error.status || 500
 			return { errors: [error] }
 		}).then(result => {
+			if (result && result.___empty)
+				result = {}
 			// If no data was included in the result, that indicates a runtime query
 			// error, indicate as such with a generic status code.
 			// Note: Information about the error itself will still be contained in
 			// the resulting JSON payload.
 			// http://facebook.github.io/graphql/#sec-Data
-			if (result && result.data === null) {
+			if (result && result.data === null) 
 				response.statusCode = 500
-			}
+
 			// Format any encountered errors.
-			if (result && result.errors) {
+			if (result && result.errors) 
 				(result).errors = result.errors.map(formatErrorFn || graphql.formatError)
+
+			// Add custom errors from potential middleware.
+			if (result && request.graphql && request.graphql.errors && Array.isArray(request.graphql.errors) && request.graphql.errors.length > 0) {
+				if (!result.errors)
+					result.errors = []
+				result.errors.push(...request.graphql.errors.map(({ message, locations, path }) => ({ message, locations, path })))
 			}
-			// If allowed to show GraphiQL, present it instead of JSON.
-			if (showGraphiQL) {
-				const payload = renderGraphiQL({ query, variables, operationName, result, schemaAST }, graphiQlOptions)
-				response.setHeader('Content-Type', 'text/html; charset=utf-8')
-				sendResponse(response, payload)
-			} else {
-				// Otherwise, present JSON directly.
-				const payload = JSON.stringify(result, null, pretty ? 2 : 0)
-				response.setHeader('Content-Type', 'application/json; charset=utf-8')
-				sendResponse(response, payload)
-			}
-			return result
+			
+			const execute = showGraphiQL
+				// If allowed to show GraphiQL, present it instead of JSON.
+				? () => {
+					const payload = renderGraphiQL({ query, variables, operationName, result, schemaAST }, graphiQlOptions)
+					response.setHeader('Content-Type', 'text/html; charset=utf-8')
+					sendResponse(response, payload)
+					return result
+				}
+				// Otherwise, present JSON directly. 
+				: () => onResponse(request, response, result).then(r => {
+					let _result = r || result
+					const payload = JSON.stringify(_result, null, pretty ? 2 : 0)
+					response.setHeader('Content-Type', 'application/json; charset=utf-8')
+					sendResponse(response, payload)
+					return _result
+				})
+			
+			return execute()
 		})
 	}
 }
+
+const getParseDataFromUrl = req => {
+	if (req.url){
+		try {
+			return url.parse(req.url, true).query
+		}
+		/*eslint-disable */
+		catch(err) {
+			return {}
+		}
+		/*eslint-enable */
+	}
+	else
+		return {}
+}
+
 /**
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the GraphQL request parameters.
  */
-
 function getGraphQLParams(request) {
 	return parseBody(request).then(bodyData => {
-		const urlData = request.url && url.parse(request.url, true).query || {}
-		return parseGraphQLParams(urlData, bodyData)
+		const data =
+			request.graphql && request.graphql.query ? request.graphql :
+				bodyData && bodyData.query ? bodyData : getParseDataFromUrl(request)
+
+		return parseGraphQLParams(data)
 	})
 }
 
 /**
  * Helper function to get the GraphQL params from the request.
  */
-function parseGraphQLParams(urlData, bodyData) {
+function parseGraphQLParams(data={}) {
 	// GraphQL Query string.
-	let query = bodyData.query || urlData.query
+	let query = data.query
 	if (typeof query !== 'string') {
 		query = null
 	}
 
 	// Parse the variables if needed.
-	let variables = urlData.variables || bodyData.variables
+	let variables = data.variables
 	if (variables && typeof variables === 'string') {
 		try {
 			variables = JSON.parse(variables)
@@ -283,14 +330,12 @@ function parseGraphQLParams(urlData, bodyData) {
 	} else if (typeof variables !== 'object') {
 		variables = null
 	}
-
 	// Name of GraphQL operation to execute.
-	let operationName = bodyData.operationName || urlData.operationName
+	let operationName = data.operationName
 	if (typeof operationName !== 'string') {
 		operationName = null
 	}
-
-	const raw = urlData.raw !== undefined || bodyData.raw !== undefined
+	const raw = data.raw !== undefined
 
 	return { query, variables, operationName, raw }
 }
