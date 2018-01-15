@@ -55,29 +55,73 @@ describe('index', () =>
 	describe('#handleEvent: 02', () => 
 		it(`Should succeed if the query matches the specified routing.`, () => {
 			/*eslint-enable */
+
+			const schema = `
+			type Product {
+				id: ID!
+				name: String!
+				shortDescription: String
+			}
+
+			type Query {
+				# ### GET products
+				#
+				# _Arguments_
+				# - **id**: Product's id (optional)
+				products(id: Int): [Product]
+			}
+
+			schema {
+				query: Query
+			}
+			`
+			const productMocks = [{ id: 1, name: 'Product A', shortDescription: 'First product.' }, { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
+			const productResolver = {
+				Query: {
+					products(root, { id }, context) {
+						const results = id ? productMocks.filter(p => p.id == id) : productMocks
+						if (results)
+							return results
+						else
+							throw httpError(404, `Product with id ${id} does not exist.`)
+					}
+				}
+			}
+
+			const executableSchema = makeExecutableSchema({
+				typeDefs: schema,
+				resolvers: productResolver
+			})
+
+			const graphqlOptions = {
+				schema: executableSchema,
+				graphiql: true,
+				endpointURL: "/graphiql"
+			}
+
+			const uri = 'users/graphiql'
 			const req_01 = httpMocks.createRequest({
 				method: 'GET',
 				headers: {
 					origin: 'http://localhost:8080',
-					referer: 'http://localhost:8080'
+					referer: 'http://localhost:8080',
+					accept: 'application/json'
 				},
 				_parsedUrl: {
-					pathname: '/users/nicolas/graphiql'
+					pathname: uri
+				},
+				url: uri,
+				body: { 
+					query: `
+						query {
+							products(id: 1) {
+								name
+							}
+						}`,
+					variables: null 
 				}
 			})
 			const res_01 = httpMocks.createResponse()
-			const req_02 = httpMocks.createRequest({
-				method: 'GET',
-				headers: {
-					origin: 'http://localhost:8080',
-					referer: 'http://localhost:8080'
-				},
-				_parsedUrl: {
-					pathname: '/users/brendan/graphiql'
-				}
-			})
-			const res_02 = httpMocks.createResponse()
-
 			const appconfig = {
 				headers: {
 					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
@@ -89,18 +133,36 @@ describe('index', () =>
 
 			app.reset()
 			app.use(appconfig)
-			app.all(['/users/:username', '/users/:username/graphiql'], graphqlHandler({ schema: {}, endpointURL: '/graphiql' }), () => null)
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
-			
+
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
+				const headers = res_01._getHeaders()
+				assert.isOk(headers)
+				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
+				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
+				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
+				assert.equal(headers['Access-Control-Max-Age'], '1296000')
+				const html = res_01._getData()
+				assert.isOk(html)
+				assert.equal(typeof(html), 'string')
+				let htmlJson
+				try {
+					htmlJson = JSON.parse(html)
+				}
+				catch(err) {
+					assert.isOk(err)
+					htmlJson = null
+				}
+				assert.isOk(htmlJson, `Response should be a json object.`)
+				assert.isOk(htmlJson.data, `Response should be a json object with a defined 'data' property.`)
+				assert.isOk(htmlJson.data.products, `Response should be a json object with a defined 'data.products' property.`)
+				assert.isOk(htmlJson.data.products.length > 0, `Response's 'data.products' must be an array with at least one element.`)
+				assert.equal(htmlJson.data.products[0].name, 'Product A')
 			})
 
-			const result_02 = fn(req_02, res_02).then(() => {
-				assert.equal(res_02.statusCode, 200)
-			})
-
-			return Promise.all([result_01, result_02])
+			return Promise.all([result_01])
 		})))
 
 
@@ -161,11 +223,24 @@ describe('index', () =>
 					accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
 				},
 				_parsedUrl: {
+					pathname: '/users/brendan/graphiql'
+				},
+				url: '/users/brendan/graphiql'
+			})
+			const res_01 = httpMocks.createResponse()
+			const req_02 = httpMocks.createRequest({
+				method: 'GET',
+				headers: {
+					origin: 'http://localhost:8080',
+					referer: 'http://localhost:8080',
+					accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
+				},
+				_parsedUrl: {
 					pathname: '/users/graphiql'
 				},
 				url: '/users/graphiql'
 			})
-			const res_01 = httpMocks.createResponse()
+			const res_02 = httpMocks.createResponse()
 			const appconfig = {
 				headers: {
 					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
@@ -177,25 +252,17 @@ describe('index', () =>
 
 			app.reset()
 			app.use(appconfig)
-			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			app.all(['/users/:username', '/users/:username/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
-				const headers = res_01._getHeaders()
-				assert.isOk(headers)
-				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
-				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
-				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
-				assert.equal(headers['Access-Control-Max-Age'], '1296000')
-				const html = res_01._getData()
-				assert.isOk(html)
-				assert.equal(typeof(html), 'string')
-				assert.isOk(html.indexOf('// Render <GraphiQL /> into the body.') > 0, 'The response does not return a GraphiQL HTML.')
-				//assert.equal(res_01._getData(),'Hello nicolas dao')
+			})
+			const result_02 = fn(req_02, res_02).then(() => {
+				assert.equal(res_02.statusCode, 200)
 			})
 
-			return Promise.all([result_01])
+			return Promise.all([result_01, result_02])
  		})))
 
 /*eslint-disable */
@@ -543,7 +610,7 @@ describe('index', () =>
 
 /*eslint-disable */
 describe('index', () => 
-	describe('#handleEvent: 06', () => 
+	describe('#handleEvent: 07', () => 
 		it(`Should support custom handling of the final response with an 'onResponse' function defined in the graphQl options.`, () => {
 			/*eslint-enable */
 
@@ -589,7 +656,7 @@ describe('index', () =>
 				graphiql: true,
 				endpointURL: "/graphiql",
 				onResponse: (req, res, result) => {
-					return Object.assign(result, { hello: 'world' })
+					return Object.assign(result, { data: { properties: { id: 1 } }, hello: 'world' })
 				}
 			}
 
@@ -635,7 +702,7 @@ describe('index', () =>
 				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
 				assert.isOk(html)
-				assert.equal(html, '{"hello":"world"}')
+				assert.equal(html, '{"data":{"properties":{"id":1}},"hello":"world"}')
 			})
 
 			return Promise.all([result_01])

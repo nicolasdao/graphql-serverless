@@ -44,7 +44,7 @@ const graphqlHandler = options => {
 // Though this may seem completely stupid to list a combination of potential empty queries rather than 
 // escaping the original query, empty queries are such an exception that escaping all freaking 
 // queries just for that rare occasion seems too expensive.
-const _basicEmptyQueries = {'query{}': true,'query{\n}': true,'query{ \n}': true,'query{ }': true,'query {}': true,'query {\n}': true,'query { \n}': true,'query { }': true,'mutation{}': true,'mutation{\n}': true,'mutation{ \n}': true,'mutation{ }': true,'mutation {}': true,'mutation {\n}': true,'mutation { \n}': true,'mutation { }': true,'subscription{}': true,'subscription{\n}': true,'subscription{ \n}': true,'subscription{ }': true,'subscription {}': true,'subscription {\n}': true,'subscription { \n}': true,'subscription { }': true}
+const _basicEmptyQueries = {'{}': true,'{\n}': true,'{ \n}': true,'{ }': true,'query{}': true,'query{\n}': true,'query{ \n}': true,'query{ }': true,'query {}': true,'query {\n}': true,'query { \n}': true,'query { }': true,'mutation{}': true,'mutation{\n}': true,'mutation{ \n}': true,'mutation{ }': true,'mutation {}': true,'mutation {\n}': true,'mutation { \n}': true,'mutation { }': true,'subscription{}': true,'subscription{\n}': true,'subscription{ \n}': true,'subscription{ }': true,'subscription {}': true,'subscription {\n}': true,'subscription { \n}': true,'subscription { }': true}
 function graphqlHTTP(options) {
 	if (!options) {
 		throw new Error('GraphQL middleware requires options.')
@@ -237,19 +237,12 @@ function graphqlHTTP(options) {
 			response.statusCode = error.status || 500
 			return { errors: [error] }
 		}).then(result => {
-			if (result && result.___empty)
+			let httpCode = response.statusCode || 200
+			if (result && result.___empty) {
+				result.errors = null
+				httpCode == 200
 				result = {}
-			// If no data was included in the result, that indicates a runtime query
-			// error, indicate as such with a generic status code.
-			// Note: Information about the error itself will still be contained in
-			// the resulting JSON payload.
-			// http://facebook.github.io/graphql/#sec-Data
-			if (result && result.data === null) 
-				response.statusCode = 500
-
-			// Format any encountered errors.
-			if (result && result.errors) 
-				(result).errors = result.errors.map(formatErrorFn || graphql.formatError)
+			}
 
 			// Add custom errors from potential middleware.
 			if (result && request.graphql && request.graphql.errors && Array.isArray(request.graphql.errors) && request.graphql.errors.length > 0) {
@@ -257,13 +250,20 @@ function graphqlHTTP(options) {
 					result.errors = []
 				result.errors.push(...request.graphql.errors.map(({ message, locations, path }) => ({ message, locations, path })))
 			}
-			
+
+			// Format any encountered errors.
+			if (result && result.errors) {
+				result.errors = result.errors.map(formatErrorFn || graphql.formatError)
+				if (allPropertiesFalsy(result.data))
+					httpCode = response.statusCode < 500 ? 500 : response.statusCode
+			}
+
 			const execute = showGraphiQL
 				// If allowed to show GraphiQL, present it instead of JSON.
 				? () => {
 					const payload = renderGraphiQL({ query, variables, operationName, result, schemaAST }, graphiQlOptions)
 					response.setHeader('Content-Type', 'text/html; charset=utf-8')
-					sendResponse(response, payload)
+					sendResponse(response, payload, httpCode)
 					return result
 				}
 				// Otherwise, present JSON directly. 
@@ -271,13 +271,22 @@ function graphqlHTTP(options) {
 					let _result = r || result
 					const payload = JSON.stringify(_result, null, pretty ? 2 : 0)
 					response.setHeader('Content-Type', 'application/json; charset=utf-8')
-					sendResponse(response, payload)
+					sendResponse(response, payload, httpCode)
 					return _result
 				})
 			
 			return execute()
 		})
 	}
+}
+
+const allPropertiesFalsy = data => {
+	let result = true
+	if (data && typeof(data) == 'object')
+		for (let k in data) {
+			result = result && !data[k]
+		}
+	return result
 }
 
 const getParseDataFromUrl = req => {
@@ -354,10 +363,11 @@ function canDisplayGraphiQL(request, params) {
  * Helper function for sending the response data. Use response.send it method
  * exists (express), otherwise use response.end (connect).
  */
-function sendResponse(response, data) {
+function sendResponse(response, data, httpCode=200) {
 	if (typeof response.send === 'function') {
-		response.status(200).send(data)
+		response.status(httpCode).send(data)
 	} else {
+		response.statusCode = httpCode
 		response.end(data)
 	}
 }
