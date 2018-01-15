@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0-alpha.7"></a>
+# [0.4.0-alpha.7](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.6...v0.4.0-alpha.7) (2018-01-15)
+
+
+### Bug Fixes
+
+* HTTP code are not consistent with errors returned ([cc1441e](https://github.com/nicolasdao/google-graphql-functions/commit/cc1441e))
+
+
+
 <a name="0.4.0-alpha.6"></a>
 # [0.4.0-alpha.6](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.5...v0.4.0-alpha.6) (2018-01-12)
 
