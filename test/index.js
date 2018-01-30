@@ -28,17 +28,7 @@ describe('index', () =>
 			})
 			const res_01 = httpMocks.createResponse()
 
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
-
 			app.reset()
-			app.use(appconfig)
 			app.all('/users/:graphiqlpath', graphqlHandler({ schema: {} }), () => null)
 			const fn = app.handleEvent()
 
@@ -122,28 +112,13 @@ describe('index', () =>
 				}
 			})
 			const res_01 = httpMocks.createResponse()
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
 
 			app.reset()
-			app.use(appconfig)
 			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
-				const headers = res_01._getHeaders()
-				assert.isOk(headers)
-				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
-				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
-				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
-				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
 				assert.isOk(html)
 				assert.equal(typeof(html), 'string')
@@ -241,17 +216,8 @@ describe('index', () =>
 				url: '/users/graphiql'
 			})
 			const res_02 = httpMocks.createResponse()
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
 
 			app.reset()
-			app.use(appconfig)
 			app.all(['/users/:username', '/users/:username/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
 
@@ -337,28 +303,13 @@ describe('index', () =>
 				}
 			})
 			const res_01 = httpMocks.createResponse()
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
 
 			app.reset()
-			app.use(appconfig)
 			app.all(['/', '/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 404)
-				const headers = res_01._getHeaders()
-				assert.isOk(headers)
-				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
-				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
-				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
-				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
 				assert.equal(res_01._getData(), `Endpoint 'users/graphiql' for method GET not found.`)
 			})
@@ -438,28 +389,13 @@ describe('index', () =>
 				}
 			})
 			const res_01 = httpMocks.createResponse()
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
 
 			app.reset()
-			app.use(appconfig)
 			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
-				const headers = res_01._getHeaders()
-				assert.isOk(headers)
-				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
-				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
-				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
-				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
 				assert.isOk(html)
 				assert.equal(typeof(html), 'string')
@@ -565,28 +501,13 @@ describe('index', () =>
 				}
 			})
 			const res_02 = httpMocks.createResponse()
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
 
 			app.reset()
-			app.use(appconfig)
 			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
-				const headers = res_01._getHeaders()
-				assert.isOk(headers)
-				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
-				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
-				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
-				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
 				assert.isOk(html)
 				assert.equal(html, '{}')
@@ -594,12 +515,6 @@ describe('index', () =>
 
 			const result_02 = fn(req_02, res_02).then(() => {
 				assert.equal(res_02.statusCode, 200)
-				const headers = res_02._getHeaders()
-				assert.isOk(headers)
-				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
-				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
-				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
-				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
 				assert.isOk(html)
 				assert.equal(html, '{}')
@@ -678,28 +593,13 @@ describe('index', () =>
 				}
 			})
 			const res_01 = httpMocks.createResponse()
-			const appconfig = {
-				headers: {
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS, POST',
-					'Access-Control-Allow-Headers': 'Authorization, Content-Type, Origin',
-					'Access-Control-Allow-Origin': 'http://boris.com, http://localhost:8080',
-					'Access-Control-Max-Age': '1296000'
-				}
-			}
 
 			app.reset()
-			app.use(appconfig)
 			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
 			const fn = app.handleEvent()
 
 			const result_01 = fn(req_01, res_01).then(() => {
 				assert.equal(res_01.statusCode, 200)
-				const headers = res_01._getHeaders()
-				assert.isOk(headers)
-				assert.equal(headers['Access-Control-Allow-Methods'], 'GET, HEAD, OPTIONS, POST')
-				assert.equal(headers['Access-Control-Allow-Headers'], 'Authorization, Content-Type, Origin')
-				assert.equal(headers['Access-Control-Allow-Origin'], 'http://boris.com, http://localhost:8080')
-				assert.equal(headers['Access-Control-Max-Age'], '1296000')
 				const html = res_01._getData()
 				assert.isOk(html)
 				assert.equal(html, '{"data":{"properties":{"id":1}},"hello":"world"}')
