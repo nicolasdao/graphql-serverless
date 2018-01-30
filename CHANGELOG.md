@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0-alpha.8"></a>
+# [0.4.0-alpha.8](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.7...v0.4.0-alpha.8) (2018-01-30)
+
+
+### Features
+
+* Add support for a new 'warnings' property in the response allowing more granular response details ([6e5e8dd](https://github.com/nicolasdao/google-graphql-functions/commit/6e5e8dd))
+
+
+
 <a name="0.4.0-alpha.7"></a>
 # [0.4.0-alpha.7](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.6...v0.4.0-alpha.7) (2018-01-15)
 
