@@ -250,6 +250,13 @@ function graphqlHTTP(options) {
 					result.errors = []
 				result.errors.push(...request.graphql.errors.map(({ message, locations, path }) => ({ message, locations, path })))
 			}
+			
+			// Add custom warnings from potential middleware.
+			if (result && request.graphql && request.graphql.warnings && Array.isArray(request.graphql.warnings) && request.graphql.warnings.length > 0) {
+				if (!result.warnings)
+					result.warnings = []
+				result.warnings.push(...request.graphql.warnings.map(({ message, locations, path }) => ({ message, locations, path })))
+			}
 
 			// Format any encountered errors.
 			if (result && result.errors) {
