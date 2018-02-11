@@ -244,27 +244,35 @@ function graphqlHTTP(options) {
 				result = {}
 			}
 
-			// Add custom errors from potential middleware.
-			if (result && request.graphql && request.graphql.errors && Array.isArray(request.graphql.errors) && request.graphql.errors.length > 0) {
-				if (!result.errors)
-					result.errors = []
-				result.errors.push(...request.graphql.errors.map(({ message, locations, path }) => ({ message, locations, path })))
+			if (result) {
+				if (request.graphql) {
+					// Add custom errors from potential middleware.
+					if (request.graphql.errors && Array.isArray(request.graphql.errors) && request.graphql.errors.length > 0) {
+						if (!result.errors)
+							result.errors = []
+						result.errors.push(...request.graphql.errors.map(({ message, locations, path }) => ({ message, locations, path })))
+					}
+					
+					// Add custom warnings from potential middleware.
+					if (request.graphql.warnings && Array.isArray(request.graphql.warnings) && request.graphql.warnings.length > 0) {
+						if (!result.warnings)
+							result.warnings = []
+						result.warnings.push(...request.graphql.warnings.map(({ message, locations, path }) => ({ message, locations, path })))
+					}
+
+					// Transform final response based on potential middleware rules.
+					if (request.graphql.transform)
+						request.graphql.transform(result)
+				}
+
+				// Format any encountered errors.
+				if (result.errors) {
+					result.errors = result.errors.map(formatErrorFn || graphql.formatError)
+					if (allPropertiesFalsy(result.data))
+						httpCode = response.statusCode < 500 ? 500 : response.statusCode
+				}
 			}
 			
-			// Add custom warnings from potential middleware.
-			if (result && request.graphql && request.graphql.warnings && Array.isArray(request.graphql.warnings) && request.graphql.warnings.length > 0) {
-				if (!result.warnings)
-					result.warnings = []
-				result.warnings.push(...request.graphql.warnings.map(({ message, locations, path }) => ({ message, locations, path })))
-			}
-
-			// Format any encountered errors.
-			if (result && result.errors) {
-				result.errors = result.errors.map(formatErrorFn || graphql.formatError)
-				if (allPropertiesFalsy(result.data))
-					httpCode = response.statusCode < 500 ? 500 : response.statusCode
-			}
-
 			const execute = showGraphiQL
 				// If allowed to show GraphiQL, present it instead of JSON.
 				? () => {
