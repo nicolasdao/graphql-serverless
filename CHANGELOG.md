@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0-alpha.10"></a>
+# [0.4.0-alpha.10](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.9...v0.4.0-alpha.10) (2018-02-11)
+
+
+### Features
+
+* Add support for optionally transform the graphql result ([b3e3898](https://github.com/nicolasdao/google-graphql-functions/commit/b3e3898))
+
+
+
 <a name="0.4.0-alpha.9"></a>
 # [0.4.0-alpha.9](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.8...v0.4.0-alpha.9) (2018-01-30)
 
