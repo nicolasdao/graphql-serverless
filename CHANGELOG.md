@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0-alpha.11"></a>
+# [0.4.0-alpha.11](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.10...v0.4.0-alpha.11) (2018-02-13)
+
+
+### Bug Fixes
+
+* onResponse and request.graphql.transform are not failing properly which causes unclear errors as well as affecting the overall server performance by blocking for 2 seconds ([c389454](https://github.com/nicolasdao/google-graphql-functions/commit/c389454))
+
+
+
 <a name="0.4.0-alpha.10"></a>
 # [0.4.0-alpha.10](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0-alpha.9...v0.4.0-alpha.10) (2018-02-11)
 
