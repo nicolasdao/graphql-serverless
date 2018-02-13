@@ -608,5 +608,288 @@ describe('index', () =>
 			return Promise.all([result_01])
 		})))
 
+/*eslint-disable */
+describe('index', () => 
+	describe('#handleEvent: 08', () => 
+		it(`Should transform graphql response with a 'request.graphQl.transform' function.`, () => {
+			/*eslint-enable */
+
+			const schema = `
+			type Product {
+				id: ID!
+				name: String!
+				shortDescription: String
+			}
+
+			type Query {
+				# ### GET products
+				#
+				# _Arguments_
+				# - **id**: Product's id (optional)
+				products(id: Int): [Product]
+			}
+
+			schema {
+				query: Query
+			}
+			`
+			const productMocks = [{ id: 1, name: 'Product A', shortDescription: 'First product.' }, { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
+			const productResolver = {
+				Query: {
+					products(root, { id }, context) {
+						const results = id ? productMocks.filter(p => p.id == id) : productMocks
+						if (results)
+							return results
+						else
+							throw httpError(404, `Product with id ${id} does not exist.`)
+					}
+				}
+			}
+
+			const executableSchema = makeExecutableSchema({
+				typeDefs: schema,
+				resolvers: productResolver
+			})
+
+			const graphqlOptions = {
+				schema: executableSchema,
+				graphiql: true,
+				endpointURL: "/graphiql"
+			}
+
+			const uri = 'users/graphiql'
+			const req_01 = httpMocks.createRequest({
+				method: 'GET',
+				headers: {
+					origin: 'http://localhost:8080',
+					referer: 'http://localhost:8080',
+					accept: 'application/json'
+				},
+				_parsedUrl: {
+					pathname: uri
+				},
+				url: uri,
+				body: { 
+					query: `
+						query {
+							products(id: 1) {
+								id
+							}
+						}`,
+					variables: null 
+				},
+				graphql: {
+					transform: result => {
+						if (result.data.products[0].id == 1) {
+							result.data.products[0].name = 'Hello'
+						}
+					}
+				}
+			})
+			const res_01 = httpMocks.createResponse()
+
+			app.reset()
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
+
+			const result_01 = fn(req_01, res_01).then(() => {
+				assert.equal(res_01.statusCode, 200)
+				const html = res_01._getData()
+				assert.isOk(html)
+				assert.equal(html, '{"data":{"products":[{"id":"1","name":"Hello"}]}}')
+			})
+
+			return Promise.all([result_01])
+		})))
+
+/*eslint-disable */
+describe('index', () => 
+	describe('#handleEvent: 09', () => 
+		it(`Should return a properly formatted graphql error if the 'optionsData.onResponse' function fails as well as a http 500.`, () => {
+			/*eslint-enable */
+
+			const schema = `
+			type Product {
+				id: ID!
+				name: String!
+				shortDescription: String
+			}
+
+			type Query {
+				# ### GET products
+				#
+				# _Arguments_
+				# - **id**: Product's id (optional)
+				products(id: Int): [Product]
+			}
+
+			schema {
+				query: Query
+			}
+			`
+			const productMocks = [{ id: 1, name: 'Product A', shortDescription: 'First product.' }, { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
+			const productResolver = {
+				Query: {
+					products(root, { id }, context) {
+						const results = id ? productMocks.filter(p => p.id == id) : productMocks
+						if (results)
+							return results
+						else
+							throw httpError(404, `Product with id ${id} does not exist.`)
+					}
+				}
+			}
+
+			const executableSchema = makeExecutableSchema({
+				typeDefs: schema,
+				resolvers: productResolver
+			})
+
+			const graphqlOptions = {
+				schema: executableSchema,
+				graphiql: true,
+				endpointURL: "/graphiql",
+				onResponse: (req, res, result) => {
+					if (result.data.product[0].id == 1)
+						result.data.products[0].name = 'Hello'
+				}
+			}
+
+			const uri = 'users/graphiql'
+			const req_01 = httpMocks.createRequest({
+				method: 'GET',
+				headers: {
+					origin: 'http://localhost:8080',
+					referer: 'http://localhost:8080',
+					accept: 'application/json'
+				},
+				_parsedUrl: {
+					pathname: uri
+				},
+				url: uri,
+				body: { 
+					query: `
+						query {
+							products(id: 1) {
+								id
+							}
+						}`,
+					variables: null 
+				}
+			})
+			const res_01 = httpMocks.createResponse()
+
+			app.reset()
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
+
+			const result_01 = fn(req_01, res_01).then(() => {
+				assert.equal(res_01.statusCode, 500)
+				const html = res_01._getData()
+				assert.isOk(html)
+				const result = JSON.parse(html)
+				assert.isOk(result.errors[0].message.indexOf(`TypeError: Cannot read property '0' of undefined`) >= 0)
+				assert.equal(result.errors[0].location, `Function 'optionsData.onResponse'`)
+			})
+
+			return Promise.all([result_01])
+		})))
+
+/*eslint-disable */
+describe('index', () => 
+	describe('#handleEvent: 10', () => 
+		it(`Should return a properly formatted graphql error if the 'request.graphQl.transform' function fails as well as a http 500.`, () => {
+			/*eslint-enable */
+
+			const schema = `
+			type Product {
+				id: ID!
+				name: String!
+				shortDescription: String
+			}
+
+			type Query {
+				# ### GET products
+				#
+				# _Arguments_
+				# - **id**: Product's id (optional)
+				products(id: Int): [Product]
+			}
+
+			schema {
+				query: Query
+			}
+			`
+			const productMocks = [{ id: 1, name: 'Product A', shortDescription: 'First product.' }, { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
+			const productResolver = {
+				Query: {
+					products(root, { id }, context) {
+						const results = id ? productMocks.filter(p => p.id == id) : productMocks
+						if (results)
+							return results
+						else
+							throw httpError(404, `Product with id ${id} does not exist.`)
+					}
+				}
+			}
+
+			const executableSchema = makeExecutableSchema({
+				typeDefs: schema,
+				resolvers: productResolver
+			})
+
+			const graphqlOptions = {
+				schema: executableSchema,
+				graphiql: true,
+				endpointURL: "/graphiql"
+			}
+
+			const uri = 'users/graphiql'
+			const req_01 = httpMocks.createRequest({
+				method: 'GET',
+				headers: {
+					origin: 'http://localhost:8080',
+					referer: 'http://localhost:8080',
+					accept: 'application/json'
+				},
+				_parsedUrl: {
+					pathname: uri
+				},
+				url: uri,
+				body: { 
+					query: `
+						query {
+							products(id: 1) {
+								id
+							}
+						}`,
+					variables: null 
+				},
+				graphql: {
+					transform: result => {
+						if (result.data.product[0].id == 1) {
+							result.data.products[0].name = 'Hello'
+						}
+					}
+				}
+			})
+			const res_01 = httpMocks.createResponse()
+
+			app.reset()
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
+
+			const result_01 = fn(req_01, res_01).then(() => {
+				assert.equal(res_01.statusCode, 500)
+				const html = res_01._getData()
+				assert.isOk(html)
+				const result = JSON.parse(html)
+				assert.isOk(result.errors[0].message.indexOf(`TypeError: Cannot read property '0' of undefined`) >= 0)
+				assert.equal(result.errors[0].location, `Function 'request.graphql.transform'`)
+			})
+
+			return Promise.all([result_01])
+		})))
+
 
 

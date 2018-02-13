@@ -111,7 +111,7 @@ function graphqlHTTP(options) {
 			if (graphiQlOptions.toggle == false)
 				graphiql = false
 			onResponse = optionsData.onResponse && typeof(optionsData.onResponse) == 'function'
-				? (req, res, result) => Promise.resolve(optionsData.onResponse(req, res, result))
+				? (req, res, result) => Promise.resolve(null).then(() => optionsData.onResponse(req, res, result))
 				/*eslint-disable */
 				: (req, res, result) => Promise.resolve(result)
 				/*eslint-enable */
@@ -243,6 +243,7 @@ function graphqlHTTP(options) {
 				httpCode == 200
 				result = {}
 			}
+			let transformResult = r => Promise.resolve(result)
 
 			if (result) {
 				if (request.graphql) {
@@ -262,7 +263,7 @@ function graphqlHTTP(options) {
 
 					// Transform final response based on potential middleware rules.
 					if (request.graphql.transform)
-						request.graphql.transform(result)
+						transformResult = r => Promise.resolve(null).then(v => request.graphql.transform(r))
 				}
 
 				// Format any encountered errors.
@@ -282,12 +283,20 @@ function graphqlHTTP(options) {
 					return result
 				}
 				// Otherwise, present JSON directly. 
-				: () => onResponse(request, response, result).then(r => {
-					let _result = r || result
-					const payload = JSON.stringify(_result, null, pretty ? 2 : 0)
-					response.setHeader('Content-Type', 'application/json; charset=utf-8')
-					sendResponse(response, payload, httpCode)
-					return _result
+				: () => onResponse(request, response, result).catch(err => ({ _error: err, _location: `Function 'optionsData.onResponse'`, _result: result }))
+					.then(r => r._error ? r : transformResult(r).catch(err => ({ _error: err, _location: `Function 'request.graphql.transform'`, _result: r }))).then(r => {
+						let _result = r || result
+						if (r && r._error) {
+							_result = r._result
+							if (!_result.errors) 
+								_result.errors = []
+							_result.errors.push({ message: `${r._error.message}\n${r._error.stack}`, location: r._location })
+							httpCode = 500
+						}
+						const payload = JSON.stringify(_result, null, pretty ? 2 : 0)
+						response.setHeader('Content-Type', 'application/json; charset=utf-8')
+						sendResponse(response, payload, httpCode)
+						return _result
 				})
 			
 			return execute()
