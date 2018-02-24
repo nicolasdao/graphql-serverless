@@ -21,7 +21,9 @@ const accepts = require('accepts')
 const graphql = require('graphql')
 const httpError = require('http-errors')
 const url = require('url')
+const { SubscriptionServer } = require('subscriptions-transport-ws')
 const graphqlError = require('./utils')
+require('color')
 
 const parseBody = require('./parseBody')
 const { renderGraphiQL } = require('./renderGraphiQL')
@@ -68,6 +70,8 @@ function graphqlHTTP(options) {
 		let operationName
 		let validationRules
 		let endpointURL
+		let subscriptionsEndpoint
+		let websocketConnectionParams
 		let schemaAST
 		let graphiQlOptions
 		let onResponse
@@ -107,10 +111,14 @@ function graphqlHTTP(options) {
 			formatErrorFn = optionsData.formatError
 			extensionsFn = optionsData.extensions
 			endpointURL = optionsData.endpointURL
+			subscriptionsEndpoint = optionsData.subscriptionsEndpoint
+			websocketConnectionParams = optionsData.websocketConnectionParams
 			schemaAST = optionsData.schemaAST
 			graphiQlOptions = optionsData.graphiql != undefined && typeof(optionsData.graphiql) == 'object' ? optionsData.graphiql : {}
 			if (graphiQlOptions.toggle == false)
 				graphiql = false
+			if (graphiQlOptions.endpoint)
+				endpointURL = graphiQlOptions.endpoint
 			onResponse = optionsData.onResponse && typeof(optionsData.onResponse) == 'function'
 				? (req, res, result) => Promise.resolve(null).then(() => optionsData.onResponse(req, res, result))
 				/*eslint-disable */
@@ -244,7 +252,7 @@ function graphqlHTTP(options) {
 				httpCode == 200
 				result = {}
 			}
-			let transformResult = r => Promise.resolve(result)
+			let transformResult = () => Promise.resolve(result)
 
 			if (result) {
 				if (request.graphql) {
@@ -264,7 +272,7 @@ function graphqlHTTP(options) {
 
 					// Transform final response based on potential middleware rules.
 					if (request.graphql.transform)
-						transformResult = r => Promise.resolve(null).then(v => request.graphql.transform(r))
+						transformResult = r => Promise.resolve(null).then(() => request.graphql.transform(r))
 				}
 
 				// Format any encountered errors.
@@ -297,14 +305,14 @@ function graphqlHTTP(options) {
 			const execute = showGraphiQL
 				// If allowed to show GraphiQL, present it instead of JSON.
 				? () => {
-					const payload = renderGraphiQL({ query, variables, operationName, result, schemaAST }, graphiQlOptions)
+					const payload = renderGraphiQL({ query, variables, operationName, result, schemaAST, subscriptionsEndpoint, websocketConnectionParams }, graphiQlOptions)
 					response.setHeader('Content-Type', 'text/html; charset=utf-8')
 					sendResponse(response, payload, httpCode)
 					return result
 				}
 				// Otherwise, present JSON directly. 
-				: () => onResponse(request, response, result).catch(err => ({ _error: err, _location: `Function 'optionsData.onResponse'`, _result: result }))
-					.then(r => r._error ? r : transformResult(r).catch(err => ({ _error: err, _location: `Function 'request.graphql.transform'`, _result: r }))).then(r => {
+				: () => onResponse(request, response, result).catch(err => ({ _error: err, _location: 'Function \'optionsData.onResponse\'', _result: result }))
+					.then(r => r._error ? r : transformResult(r).catch(err => ({ _error: err, _location: 'Function \'request.graphql.transform\'', _result: r }))).then(r => {
 						let _result = r || result
 						if (r && r._error) {
 							_result = r._result
@@ -317,7 +325,7 @@ function graphqlHTTP(options) {
 						response.setHeader('Content-Type', 'application/json; charset=utf-8')
 						sendResponse(response, payload, httpCode)
 						return _result
-				})
+					})
 			
 			return execute()
 		})
@@ -416,10 +424,28 @@ function sendResponse(response, data, httpCode=200) {
 	}
 }
 
+const setupSubscriptions = (server, { schema, subscriptionsEndpoint }) => {
+	if (!schema)
+		throw new Error('\'schema\' is required.')
+	if (!subscriptionsEndpoint)
+		throw new Error('\'subscriptionsEndpoint\' is required.')
+	const subServer = new SubscriptionServer({
+		execute: graphql.execute,
+		subscribe: graphql.subscribe,
+		schema: schema
+	}, {
+		server,
+		path: subscriptionsEndpoint.indexOf('ws:') == 0 ? subscriptionsEndpoint : `/${subscriptionsEndpoint.replace(/^\/*/, '')}`
+	})
+	console.log('WebSocket successfully set up for handling GraphQL subscriptions.'.cyan)
+	return subServer
+}
+
 const isGraphiQLRequest = (req) => getGraphQLParams(req).then(params => canDisplayGraphiQL(req, params))
 
 module.exports = {
 	graphqlHandler,
 	isGraphiQLRequest,
-	graphqlError
+	graphqlError,
+	setupSubscriptions
 }

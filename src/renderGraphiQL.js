@@ -97,6 +97,9 @@ const renderGraphiQL = (data, custom={}) => {
 	var variablesString = data.variables ? JSON.stringify(data.variables, null, 2) : null
 	var resultString = data.result ? JSON.stringify(data.result, null, 2) : null
 	var operationName = data.operationName
+	var subscriptionsEndpoint = data.subscriptionsEndpoint
+	var websocketConnectionParams = data.websocketConnectionParams || null
+	var usingWs = subscriptionsEndpoint
 
 	const head = custom.head || {}
 	const cssFiles = []
@@ -106,6 +109,8 @@ const renderGraphiQL = (data, custom={}) => {
 	scriptFiles.push(head.reactJs || '//cdn.jsdelivr.net/react/15.4.2/react.min.js')
 	scriptFiles.push(head.reactDomJs || '//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js')
 	scriptFiles.push(head.graphiqlJs || '//cdn.jsdelivr.net/npm/graphiql@0.11.2/graphiql.min.js')
+	scriptFiles.push('//unpkg.com/subscriptions-transport-ws@0.8.2/browser/client.js')
+	scriptFiles.push('//unpkg.com/graphiql-subscriptions-fetcher@0.0.2/browser/client.js')
 
 	const pageTitle = head.title || 'GraphiQL'
 	const customScript = scriptifyFunc(custom.script)
@@ -194,6 +199,15 @@ const renderGraphiQL = (data, custom={}) => {
 				})
 			}
 
+			${usingWs ? `
+			var subscriptionsEndpoint = '${subscriptionsEndpoint}'
+			if (subscriptionsEndpoint && subscriptionsEndpoint.indexOf('ws:') != 0) 
+				subscriptionsEndpoint = 'ws://' + window.location.hostname + (location.port ? ':' + location.port : '') + '/' + subscriptionsEndpoint.replace(/^\\/*/, '')
+			var subscriptionsClient = new window.SubscriptionsTransportWs.SubscriptionClient(subscriptionsEndpoint, {
+				reconnect: true${websocketConnectionParams ? `,
+				connectionParams: ${JSON.stringify(websocketConnectionParams)}` : '' }
+			});`: ''}
+
 			// Defines a GraphQL fetcher using the fetch API.
 			function graphQLFetcher(graphQLParams) {
 				return fetch(fetchURL, {
@@ -212,6 +226,8 @@ const renderGraphiQL = (data, custom={}) => {
 				});
 			}
 
+			var fetcher = ${usingWs ? 'window.GraphiQLSubscriptionsFetcher.graphQLFetcher(subscriptionsClient, graphQLFetcher)' : 'graphQLFetcher'};
+
 			// When the query and variables string is edited, update the URL bar so
 			// that it can be easily shared.
 			function onEditQuery(newQuery) {
@@ -220,23 +236,23 @@ const renderGraphiQL = (data, custom={}) => {
 			}
 
 			function onEditVariables(newVariables) {
-			parameters.variables = newVariables;
-			updateURL();
+				parameters.variables = newVariables;
+				updateURL();
 			}
 
 			function onEditOperationName(newOperationName) {
-			parameters.operationName = newOperationName;
-			updateURL();
+				parameters.operationName = newOperationName;
+				updateURL();
 			}
 
 			function updateURL() {
-			history.replaceState(null, null, locationQuery(parameters));
+				history.replaceState(null, null, locationQuery(parameters));
 			}
 
 			// Render <GraphiQL /> into the body.
 			ReactDOM.render(
 			React.createElement(GraphiQL, {
-				fetcher: graphQLFetcher,
+				fetcher: fetcher,
 				onEditQuery: onEditQuery,
 				onEditVariables: onEditVariables,
 				onEditOperationName: onEditOperationName,
@@ -244,6 +260,7 @@ const renderGraphiQL = (data, custom={}) => {
 				response: ${safeSerialize(resultString)},
 				variables: ${safeSerialize(variablesString)},
 				operationName: ${safeSerialize(operationName)},
+				websocketConnectionParams: ${safeSerialize(websocketConnectionParams)},
 			}),
 			document.body
 			);
