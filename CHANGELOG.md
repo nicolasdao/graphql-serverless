@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.0"></a>
+# [5.0.0](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.1...v5.0.0) (2018-02-24)
+
+
+### Features
+
+* Add new 'graphqlError' function that allows to create better error messages including http code ([dc60883](https://github.com/nicolasdao/google-graphql-functions/commit/dc60883))
+* Add support for subscription ([07f3167](https://github.com/nicolasdao/google-graphql-functions/commit/07f3167))
+
+
+
 <a name="0.4.1"></a>
 ## [0.4.1](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.0...v0.4.1) (2018-02-20)
 
