@@ -21,6 +21,7 @@ const accepts = require('accepts')
 const graphql = require('graphql')
 const httpError = require('http-errors')
 const url = require('url')
+const graphqlError = require('./utils')
 
 const parseBody = require('./parseBody')
 const { renderGraphiQL } = require('./renderGraphiQL')
@@ -267,10 +268,29 @@ function graphqlHTTP(options) {
 				}
 
 				// Format any encountered errors.
-				if (result.errors) {
-					result.errors = result.errors.map(formatErrorFn || graphql.formatError)
-					if (allPropertiesFalsy(result.data))
+				if (result.errors && result.errors.length > 0) {
+					const formattingError = formatErrorFn || graphql.formatError
+					let explicitHttpCode
+					result.errors = result.errors.map(e => {
+						let newError = formattingError(e)
+						let errorMessage
+						try {
+							const errMsg = JSON.parse(newError.message) || {}
+							if (errMsg.type == 'graphql') {
+								explicitHttpCode = errMsg.httpCode || 500
+								errorMessage = errMsg.hideErrors && errMsg.alternateMessage ? errMsg.alternateMessage : errMsg.message
+							} else 
+								errorMessage = newError.message
+						} catch (err) {
+							errorMessage = newError.message
+						}
+						newError.message = errorMessage
+						return newError
+					})
+					if (!explicitHttpCode && allPropertiesFalsy(result.data))
 						httpCode = response.statusCode < 500 ? 500 : response.statusCode
+					else if (explicitHttpCode)
+						httpCode = explicitHttpCode
 				}
 			}
 			
@@ -400,5 +420,6 @@ const isGraphiQLRequest = (req) => getGraphQLParams(req).then(params => canDispl
 
 module.exports = {
 	graphqlHandler,
-	isGraphiQLRequest
+	isGraphiQLRequest,
+	graphqlError
 }

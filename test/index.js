@@ -8,8 +8,8 @@
 const { assert } = require('chai')
 const httpMocks = require('node-mocks-http')
 const { makeExecutableSchema } = require('graphql-tools')
-const { graphqlHandler } = require('../src/index')
 const { app } = require('webfunc')
+const { graphqlHandler, graphqlError } = require('../src/index')
 
 /*eslint-disable */
 describe('index', () => 
@@ -73,7 +73,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -174,7 +174,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -264,7 +264,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -350,7 +350,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -450,7 +450,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -556,7 +556,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -641,7 +641,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -735,7 +735,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -828,7 +828,7 @@ describe('index', () =>
 						if (results)
 							return results
 						else
-							throw httpError(404, `Product with id ${id} does not exist.`)
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
 					}
 				}
 			}
@@ -886,6 +886,204 @@ describe('index', () =>
 				const result = JSON.parse(html)
 				assert.isOk(result.errors[0].message.indexOf(`TypeError: Cannot read property '0' of undefined`) >= 0)
 				assert.equal(result.errors[0].location, `Function 'request.graphql.transform'`)
+			})
+
+			return Promise.all([result_01])
+		})))
+
+/*eslint-disable */
+describe('index', () => 
+	describe('#graphqlError: 01', () => 
+		it(`Should control the HTTP code being sent when some errors happen.`, () => {
+			/*eslint-enable */
+
+			const schema = `
+			type Product {
+				id: ID!
+				name: String!
+				shortDescription: String
+			}
+
+			type Query {
+				# ### GET products
+				#
+				# _Arguments_
+				# - **id**: Product's id (optional)
+				products(id: Int): [Product]
+			}
+
+			schema {
+				query: Query
+			}
+			`
+			const productMocks = [{ id: 1, name: 'Product A', shortDescription: 'First product.' }, { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
+			const productResolver = {
+				Query: {
+					products(root, { id }, context) {
+						const results = id ? productMocks.filter(p => p.id == id) : productMocks
+						if (results.length > 0)
+							return results
+						else
+							throw graphqlError(404, `Product with id ${id} does not exist.`)
+					}
+				}
+			}
+
+			const executableSchema = makeExecutableSchema({
+				typeDefs: schema,
+				resolvers: productResolver
+			})
+
+			const graphqlOptions = {
+				schema: executableSchema,
+				graphiql: true,
+				endpointURL: "/graphiql"
+			}
+
+			const uri = 'users/graphiql'
+			const req_01 = httpMocks.createRequest({
+				method: 'GET',
+				headers: {
+					origin: 'http://localhost:8080',
+					referer: 'http://localhost:8080',
+					accept: 'application/json'
+				},
+				_parsedUrl: {
+					pathname: uri
+				},
+				url: uri,
+				body: { 
+					query: `
+						query {
+							products(id: 10) {
+								name
+							}
+						}`,
+					variables: null 
+				}
+			})
+			const res_01 = httpMocks.createResponse()
+
+			app.reset()
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
+
+			const result_01 = fn(req_01, res_01).then(() => {
+				assert.equal(res_01.statusCode, 404)
+				const html = res_01._getData()
+				assert.isOk(html)
+				assert.equal(typeof(html), 'string')
+				let htmlJson
+				try {
+					htmlJson = JSON.parse(html)
+				}
+				catch(err) {
+					assert.isOk(err)
+					htmlJson = null
+				}
+				assert.isOk(htmlJson, `Response should be a json object.`)
+				assert.isOk(htmlJson.errors, `Response should be a json object with a defined 'errors' property.`)
+				assert.isOk(htmlJson.errors.length > 0, `Response's 'errors' must be an array with at least one element.`)
+				assert.equal(htmlJson.errors[0].message, 'Product with id 10 does not exist.')
+			})
+
+			return Promise.all([result_01])
+		})))
+
+/*eslint-disable */
+describe('index', () => 
+	describe('#graphqlError: 02', () => 
+		it(`Should obfuscate the error message in prod.`, () => {
+			/*eslint-enable */
+
+			const schema = `
+			type Product {
+				id: ID!
+				name: String!
+				shortDescription: String
+			}
+
+			type Query {
+				# ### GET products
+				#
+				# _Arguments_
+				# - **id**: Product's id (optional)
+				products(id: Int): [Product]
+			}
+
+			schema {
+				query: Query
+			}
+			`
+			const productMocks = [{ id: 1, name: 'Product A', shortDescription: 'First product.' }, { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
+			const productResolver = {
+				Query: {
+					products(root, { id }, context) {
+						const results = id ? productMocks.filter(p => p.id == id) : productMocks
+						if (results.length > 0)
+							return results
+						else
+							throw graphqlError(404, `Product with id ${id} does not exist.`, { hide: true })
+					}
+				}
+			}
+
+			const executableSchema = makeExecutableSchema({
+				typeDefs: schema,
+				resolvers: productResolver
+			})
+
+			const graphqlOptions = {
+				schema: executableSchema,
+				graphiql: true,
+				endpointURL: "/graphiql"
+			}
+
+			const uri = 'users/graphiql'
+			const req_01 = httpMocks.createRequest({
+				method: 'GET',
+				headers: {
+					origin: 'http://localhost:8080',
+					referer: 'http://localhost:8080',
+					accept: 'application/json'
+				},
+				_parsedUrl: {
+					pathname: uri
+				},
+				url: uri,
+				body: { 
+					query: `
+						query {
+							products(id: 10) {
+								name
+							}
+						}`,
+					variables: null 
+				}
+			})
+			const res_01 = httpMocks.createResponse()
+
+			app.reset()
+			app.all(['/users', '/users/graphiql'], graphqlHandler(graphqlOptions), () => null)
+			const fn = app.handleEvent()
+
+			const result_01 = fn(req_01, res_01).then(() => {
+				assert.equal(res_01.statusCode, 404)
+				const html = res_01._getData()
+				assert.isOk(html)
+				assert.equal(typeof(html), 'string')
+				let htmlJson
+				try {
+					htmlJson = JSON.parse(html)
+				}
+				catch(err) {
+					assert.isOk(err)
+					htmlJson = null
+				}
+				assert.isOk(htmlJson, `Response should be a json object.`)
+				assert.isOk(htmlJson.errors, `Response should be a json object with a defined 'errors' property.`)
+				assert.isOk(htmlJson.errors.length > 0, `Response's 'errors' must be an array with at least one element.`)
+				assert.equal(htmlJson.errors[0].message, 'Internal Server Error')
 			})
 
 			return Promise.all([result_01])
