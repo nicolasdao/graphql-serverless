@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.1"></a>
+## [5.0.1](https://github.com/nicolasdao/google-graphql-functions/compare/v5.0.0...v5.0.1) (2018-02-25)
+
+
+### Bug Fixes
+
+* Secure websocket not supported in GraphiQl ([4002050](https://github.com/nicolasdao/google-graphql-functions/commit/4002050))
+
+
+
 <a name="5.0.0"></a>
 # [5.0.0](https://github.com/nicolasdao/google-graphql-functions/compare/v0.4.1...v5.0.0) (2018-02-24)
 
