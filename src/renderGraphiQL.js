@@ -201,8 +201,9 @@ const renderGraphiQL = (data, custom={}) => {
 
 			${usingWs ? `
 			var subscriptionsEndpoint = '${subscriptionsEndpoint}'
+			var secureConn = window.location.protocol.indexOf('https') == 0
 			if (subscriptionsEndpoint && subscriptionsEndpoint.indexOf('ws:') != 0) 
-				subscriptionsEndpoint = 'ws://' + window.location.hostname + (location.port ? ':' + location.port : '') + '/' + subscriptionsEndpoint.replace(/^\\/*/, '')
+				subscriptionsEndpoint = (secureConn ? 'wss://' : 'ws://') + window.location.hostname + (location.port ? ':' + location.port : '') + '/' + subscriptionsEndpoint.replace(/^\\/*/, '')
 			var subscriptionsClient = new window.SubscriptionsTransportWs.SubscriptionClient(subscriptionsEndpoint, {
 				reconnect: true${websocketConnectionParams ? `,
 				connectionParams: ${JSON.stringify(websocketConnectionParams)}` : '' }
