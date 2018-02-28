@@ -145,9 +145,11 @@ _graphql-serverless_ exposes a helper method `setupSubscriptions` that can host 
 - (MODIFICATION C) Add a new GraphQl Mutation to insert a new product. This insert will act as a publisher. It will add a message to the PubSub topic once the product has been successfully inserted.
 - (MODIFICATION D) Add a new GraphQl Subscription that listen to a specific topic on the PubSub queue and uses websocket to inform the client that a new product has been inserted.
 
-Install _graphql-subscriptions_: `npm install graphql-subscriptions --save`
+Install _graphql-subscriptions_: 
 
-Update the example above as follow:
+`npm install graphql-subscriptions --save`
+
+Update the previous `index.js` as follow:
   ```js
   // MODIFICATION A - Import the 'setupSubscriptions' helper
   const { graphqlHandler, graphqlError, setupSubscriptions } = require('graphql-serverless')
@@ -249,6 +251,8 @@ mutation {
 ```
 
 Once the product has been inserted, you should be able to observe that your subscription client has noticed it. 
+
+<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphql_subscription.gif"/></p>
 
 ## Customizing GraphiQL
 
