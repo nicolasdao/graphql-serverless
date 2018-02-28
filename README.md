@@ -1,9 +1,9 @@
 # GraphQL For Serverless &middot;  [![NPM](https://img.shields.io/npm/v/graphql-serverless.svg?style=flat)](https://www.npmjs.com/package/graphql-serverless) [![Tests](https://travis-ci.org/nicolasdao/graphql-serverless.svg?branch=master)](https://travis-ci.org/nicolasdao/graphql-serverless) [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause) [![Neap](https://neap.co/img/made_by_neap.svg)](#this-is-what-we-re-up-to)
 
-__*graphql-serverless*__ is a middleware for [_**webfunc**_](https://github.com/nicolasdao/webfunc), that allows to deploy [GraphQL](http://graphql.org/learn/) apis (including an optional [GraphiQL interface](https://github.com/graphql/graphiql)) to the most popular serverless platforms:
+__*graphql-serverless*__ is a middleware for [_**webfunc**_](https://github.com/nicolasdao/webfunc), that allows to deploy [GraphQL](http://graphql.org/learn/) apis (including an optional [GraphiQL interface](https://github.com/graphql/graphiql)) to the most popular serverless platforms. _**GraphQl Subscriptions**_ over websocket are also supported out-of-the-box (also supported in GraphiQL). Without changing a single line of code, seamlessly deploy to:
 - [Zeit Now](https://zeit.co/now) (using express under the hood)
 - [Google Cloud Functions](https://cloud.google.com/functions/) (incl. Firebase Function)
-- [AWS Lambdas](https://aws.amazon.com/lambda) (COMING SOON...)
+- [AWS Lambdas](https://aws.amazon.com/lambda)
 - [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) (COMING SOON...)
 
 Copy/paste the following in your terminal if you want to run your first GraphQL api ([http://localhost:4000](http://localhost:4000)) including a GraphiQL interface ([http://localhost:4000/graphiql](http://localhost:4000/graphiql)) on your local machine in less than 30 seconds:
@@ -36,72 +36,94 @@ _If you're already logged in, then simply run this:_
 npm run deploy:prod
 ```
 
+# Table Of Contents
+> * [Install](#install)
+> * [How To Use It](#how-to-use-it)
+>   - [Basics](#basics)
+>   - [GraphQl Subscriptions](#graphql-subscriptions)
+>   - [Customizing GraphiQL](#customizing-graphiql)
+>   - [Managing GraphQl Errors](#managing-graphql-errors)
+>   - [Creating Custom Middleware](#creating-custom-middleware)
+
 # Install
 ```
 npm install webfunc graphql-serverless --save
 ```
 
 # How To Use It
-Using the template above (i.e. [graphql-universal-server](https://github.com/nicolasdao/graphql-universal-server.git)) is the easiest way to start a new GraphQL project from scratch. However, if you really want to start on a blank page, simply create an index.js as follow:
+## Basics
+Using the template above (i.e. [graphql-universal-server](https://github.com/nicolasdao/graphql-universal-server.git)) is the easiest way to start a new GraphQL project from scratch. 
 
-```js
-const { graphqlHandler } = require('graphql-serverless')
-const { app } = require('webfunc')
-const { makeExecutableSchema } = require('graphql-tools') // this dependency is automatically included in 'graphql-serverless'
+However, if you really want to start on a blank page:
 
-const schema = `
-  type Product {
-    id: ID!
-    name: String!
-    shortDescription: String
-  }
+1. Create a new npm project: `npm init`
+2. Install the following: `npm install graphql-serverless webfunc --save`
+3. Create an index.js as follow:
 
-  type Query {
-    # ### GET products
-    #
-    # _Arguments_
-    # - **id**: Product's id (optional)
-    products(id: Int): [Product]
-  }
+  ```js
+  const { graphqlHandler, graphqlError } = require('graphql-serverless')
+  const { makeExecutableSchema } = require('graphql-tools') // this dependency is automatically included in 'graphql-serverless'
+  const { app } = require('webfunc')
 
-  schema {
-    query: Query
-  }`
+  // STEP 1. Mock some data for this demo.
+  const productMocks = [
+    { id: 1, name: 'Product A', shortDescription: 'First product.' }, 
+    { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
 
-const productMocks = [{ id: 1, name: 'Product A', shortDescription: 'First product.' }, { id: 2, name: 'Product B', shortDescription: 'Second product.' }]
-const productResolver = {
-  Query: {
-    products(root, { id }, context) {
-      const results = id ? productMocks.filter(p => p.id == id) : productMocks
-      if (results)
-        return results
-      else
-        throw httpError(404, `Product with id ${id} does not exist.`)
+  // STEP 2. Creating a basic GraphQl Schema.
+  const schema = `
+    type Product {
+      id: ID!
+      name: String!
+      shortDescription: String
+    }
+
+    type Query {
+      products(id: Int): [Product]
+    }
+
+    schema {
+      query: Query
+    }`
+
+  const productResolver = {
+    Query: {
+      products(root, { id }, context) {
+        const results = id ? productMocks.filter(p => p.id == id) : productMocks
+        if (results.length > 0)
+          return results
+        else
+          throw graphqlError(404, `Product with id ${id} does not exist.`)
+      }
     }
   }
-}
 
-const executableSchema = makeExecutableSchema({
-  typeDefs: schema,
-  resolvers: productResolver
-})
+  const executableSchema = makeExecutableSchema({
+    typeDefs: schema,
+    resolvers: productResolver
+  })
 
-const graphqlOptions = {
-  schema: executableSchema,
-  graphiql: true,
-  endpointURL: '/graphiql',
-  context: {} // add whatever global context is relevant to you app
-}
+  // STEP 3. Creating a GraphQL and a GraphiQl endpoint
+  const graphqlOptions = {
+    schema: executableSchema,
+    graphiql: { // If you do not want to host any GraphiQl web interface, leave this property undefined.
+      endpoint: '/graphiql' 
+    }
+  }
 
-app.all(['/', '/graphiql'], graphqlHandler(graphqlOptions), () => null)
+  // Host a GraphQl API on 2 endpoints: '/' and '/graphiql'. '/graphiql' is used to host the GraphiQL web interface.
+  // If you're not interested in the GraphiQl web interface, leave the above 'graphqlOptions.graphiql' undefined and 
+  // replace the path following ['/', '/graphiql'] with '/'.
+  app.all(['/', '/graphiql'], graphqlHandler(graphqlOptions))
 
-eval(app.listen('app', 4000))
-```
+  // STEP 4. Starting the server 
+  eval(app.listen('app', 4000))
+  ```
 
-Then simply run:
-```
-node index.js
-```
+4. Then simply run:
+  ```
+  node index.js
+  ```
 
 This will serve 2 endpoints:
 
@@ -110,7 +132,130 @@ This will serve 2 endpoints:
 
 >If you need best practices on how to structure your GraphQL project, clone the [graphql-universal-server](https://github.com/nicolasdao/graphql-universal-server.git) project and see by yourself. 
 
-## Contributing
+## GraphQl Subscriptions
+
+> __WARNING: This feature is only available on [Zeit Now serverless](https://zeit.co/now) or on localhost.__ 
+> Even though _graphql-serverless_ relies on [_webfunc_](https://github.com/nicolasdao/webfunc) to deploy on FaaS solutions like AWS Lambdas or Google Functions, because those hosting platforms do not natively support websocket, GraphQl Subscriptions can't be deployed there.
+
+_graphql-serverless_ exposes a helper method `setupSubscriptions` that can host a websocket endpoint for GraphQl Subscriptions. In the following example, we will slightly modify the code above to:
+- (MODIFICATION A) Configure a new websocket endpoint for all subscriptions.
+- (MODIFICATION B) Add a PubSub queue so that publisher can publish messages onto topics and subscribers can listen to certain topics so that clients using websocket can receive updates.
+- (MODIFICATION C) Add a new GraphQl Mutation to insert a new product. This insert will act as a publisher. It will add a message to the PubSub topic once the product has been successfully inserted.
+- (MODIFICATION D) Add a new GraphQl Subscription that listen to a specific topic on the PubSub queue and uses websocket to inform the client that a new product has been inserted.
+
+Install _graphql-subscriptions_: `npm install graphql-subscriptions --save`
+
+Update the example above as follow:
+  ```js
+  // MODIFICATION A - Import the 'setupSubscriptions' helper
+  const { graphqlHandler, graphqlError, setupSubscriptions } = require('graphql-serverless')
+
+  ...
+
+  // MODIFICATION B - Create a simple local pub/sub (not scalable option, but good enough for a demo) 
+  const { PubSub } = require('graphql-subscriptions')
+  const pubsub = new PubSub()
+
+  ...
+
+  // MODIFICATION C/D - Add an 'insert product' MUTATION and a 'product inserted' SUBSCRIPTION in the GraphQl schema
+  const schema = `
+  input NewProductInput {
+    name: String!
+    shortDescription: String
+  }
+
+  type Mutation {
+    productInsert(product: NewProductInput!): Product
+  }
+
+  type Subscription {
+    productInserted: Product
+  }
+
+  schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+  }`
+
+  ...
+
+  // MODIFICATION C/D - Add an 'insert product' MUTATION and a 'product inserted' SUBSCRIPTION in the GraphQl product resolver
+  const productResolver = {
+    Query: {...},
+
+    Mutation: {
+      productInsert(root, { product }, context) {
+        if (!product || !product.name)
+          throw context.graphqlError('Missing required argument \'product.name\'.')
+
+        const newId = productMocks.sort((a,b) => a.id < b.id)[0].id + 1
+        const newProduct = Object.assign({ id: newId }, product)
+        productMocks.push(newProduct)
+        pubsub.publish('productInserted', { productInserted: newProduct })
+        return newProduct
+      }
+    },
+
+    Subscription: {
+      productInserted: {
+        subscribe: () => pubsub.asyncIterator('productInserted')
+      }
+    }
+  }
+
+  ...
+
+  // MODIFICATION A - Define the location of the subscriptions endpoint
+  const graphqlOptions = {
+    schema: executableSchema,
+    graphiql: {
+      endpoint: '/graphiql'
+    },
+    subscriptionsEndpoint: '/subscriptions' // this means that the subscription endpoint is 'ws://localhost:4000/subscriptions' if you're deploying locally
+  }
+
+  ...
+
+  // MODIFICATION A - Start the websocket endpoint after the server as started. 
+  // WARNING: This only works for localhost, serverless Zeit Now, but not 
+  // for FaaS like AWS Lambdas, Google Functions, ...
+  eval(app.listen('app', 4000, () => setupSubscriptions(app.server, graphqlOptions)))
+  ```
+
+Execute `node index.js` and then browse to [http://localhost:4000/graphiql](http://localhost:4000/graphiql). Start a subscription as follow:
+```js
+subscription {
+  productInserted {
+    id
+    name
+  }
+}
+```
+
+At that point, the client is simply listening to any new messages on the 'productInserted' topic. Time to publish a new messages on that topic. Open a new tab and browse again to [http://localhost:4000/graphiql](http://localhost:4000/graphiql). There insert a new product as follow:
+```js
+mutation {
+  productInsert(product: {
+    name: "Product C"
+  }) {
+    id
+    name
+  }
+}
+```
+
+Once the product has been inserted, you should be able to observe that your subscription client has noticed it. 
+
+## Customizing GraphiQL
+
+## Managing GraphQl Errors
+
+## Creating Custom Middleware
+
+
+# Contributing
 ```
 npm test
 ```
@@ -127,6 +272,7 @@ Our other open-sourced projects:
 * [__*graphql-serverless*__](https://github.com/nicolasdao/graphql-serverless): GraphQL (incl. a GraphiQL interface) middleware for [webfunc](https://github.com/nicolasdao/webfunc).
 * [__*schemaglue*__](https://github.com/nicolasdao/schemaglue): Naturally breaks down your monolithic graphql schema into bits and pieces and then glue them back together.
 * [__*graphql-s2s*__](https://github.com/nicolasdao/graphql-s2s): Add GraphQL Schema support for type inheritance, generic typing, metadata decoration. Transpile the enriched GraphQL string schema into the standard string schema understood by graphql.js and the Apollo server client.
+* [__*graphql-authorize*__](https://github.com/nicolasdao/graphql-authorize.git): Authorization middleware for [graphql-serverless](https://github.com/nicolasdao/graphql-serverless). Add inline authorization straight into your GraphQl schema to restrict access to certain fields based on your user's rights.
 
 #### React & React Native
 * [__*react-native-game-engine*__](https://github.com/bberak/react-native-game-engine): A lightweight game engine for react native.
@@ -134,7 +280,6 @@ Our other open-sourced projects:
 
 #### Tools
 * [__*aws-cloudwatch-logger*__](https://github.com/nicolasdao/aws-cloudwatch-logger): Promise based logger for AWS CloudWatch LogStream.
-
 
 # License
 Copyright (c) 2018, Neap Pty Ltd.
