@@ -408,6 +408,8 @@ But instead, you will receive:
 }
 ```
 
+As you can see, the `customMiddleware` we created has allowed us to spoof the original query and replace it with `query { products(id:1){ id name shortDescription } }`.
+
 This ability is one of the key feature allowing a middleware like [__*graphql-authorize*__](https://github.com/nicolasdao/graphql-authorize.git) which can remove certain fields from the response based on the user's rights. 
 
 ### Transforming The GraphQl Response
@@ -444,7 +446,7 @@ Executing the previous GraphQl query will yield the following response:
 
 #### Custom Errors & Warnings
 
-2 other properties are very usefull to add warning or error messages:
+Two other properties that are very usefull allow to add warning or error messages:
 
 ```js
 const customMiddleware = (req, res, next) => {
@@ -486,11 +488,16 @@ Executing the previous GraphQl query will yield the following response:
 }
 ```
 
-
 ### Full API Definition 
 
-
-As you can see, the `customMiddleware` we created has allowed us to spoof the original query and replace it with `query { products(id:1){ id name shortDescription } }`.
+| Properties    | type   | Description  |
+| :------------ |:------:| :----------- |
+| query         | String | Valid GraphQl query. |
+| variables     | Object | Valid GraphQl variable object. |
+| operationName | String | GraphQl query operation. |
+| transform     | Function | Function accepting a single argument representing the original GraphQl object. This function can affect that result by either mutating it, or returning a new object. |
+| warnings      | Array  | Array of objects representing a warning. The conventional structure is as follow: { message:String, location: String, path:String } |
+| errors        | Array  | Array of objects representing an error. The conventional structure is as follow: { message:String, location: String, path:String } |
 
 # Contributing
 ```
