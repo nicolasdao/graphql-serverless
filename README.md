@@ -137,7 +137,7 @@ This will serve 2 endpoints:
 > __WARNING: This feature is only available on [Zeit Now serverless](https://zeit.co/now) or on localhost.__ 
 > Even though _graphql-serverless_ relies on [_webfunc_](https://github.com/nicolasdao/webfunc) to deploy on FaaS solutions like AWS Lambdas or Google Functions, because those hosting platforms do not natively support websocket, GraphQl Subscriptions can't be deployed there.
 
-<img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphql_subscription.gif"/>
+<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphql_subscription.gif"/></p>
 
 _graphql-serverless_ exposes a helper method `setupSubscriptions` that can host a websocket endpoint for GraphQl Subscriptions. In the following example, we will slightly modify the code above to:
 - (MODIFICATION A) Configure a new websocket endpoint for all subscriptions.
