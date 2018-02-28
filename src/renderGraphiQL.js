@@ -104,7 +104,10 @@ const renderGraphiQL = (data, custom={}) => {
 	const head = custom.head || {}
 	const cssFiles = []
 	const scriptFiles = []
-	cssFiles.push(head.graphiqlCss || '//cdn.jsdelivr.net/npm/graphiql@0.11.2/graphiql.css')
+
+	cssFiles.push(
+		...(!head.css ? ['//cdn.jsdelivr.net/npm/graphiql@0.11.2/graphiql.css'] :
+			Array.isArray(head.css) ? head.css : [head.css]))
 	scriptFiles.push(head.fetchJs || '//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js')
 	scriptFiles.push(head.reactJs || '//cdn.jsdelivr.net/react/15.4.2/react.min.js')
 	scriptFiles.push(head.reactDomJs || '//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js')
