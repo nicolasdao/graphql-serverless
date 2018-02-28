@@ -43,7 +43,7 @@ npm run deploy:prod
 >   - [GraphQl Subscriptions](#graphql-subscriptions)
 >   - [Customizing GraphiQL](#customizing-graphiql)
 >   - [Managing GraphQl Errors](#managing-graphql-errors)
->   - [Creating Custom Middleware](#creating-custom-middleware)
+>   - [Controling GraphQl Server Behavior With Custom Middleware](#controling-graphql-server-behavior-with-custom-middleware)
 
 # Install
 ```
@@ -256,10 +256,241 @@ Once the product has been inserted, you should be able to observe that your subs
 
 ## Customizing GraphiQL
 
+
+
 ## Managing GraphQl Errors
 
-## Creating Custom Middleware
+By default, any uncaught errors are marshalled to the graphql response similar to this:
+```js
+{
+  "errors": [
+    {
+      "message": "Product with id 20 does not exist.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "products"
+      ]
+    }
+  ],
+  "data": {
+    "products": null
+  }
+}
+```
 
+This type of uncaught error also yield a 500 HTTP code. A piece of code that could produce the error above could be:
+```js
+const productResolver = {
+  Query: {
+    products(root, { id }, context) {
+      const results = id ? productMocks.filter(p => p.id == id) : productMocks
+      if (results.length > 0)
+        return results
+      else
+        throw new Error(`Product with id ${id} does not exist.`)
+    }
+  }
+}
+```
+
+However, there are situation where you may want to control the error being returned in one of the following ways:
+- Controlling the HTTP code based on the type of error.
+- Hide the details of the error (e.g. the full stack trace) in certain conditions (e.g. production environment).
+
+This can be achieved thanks to the `graphqlError` helper method.
+
+```js
+const { graphqlHandler, graphqlError } = require('graphql-serverless')
+
+const productResolver = {
+  Query: {
+    products(root, { id }, context) {
+      const results = id ? productMocks.filter(p => p.id == id) : productMocks
+      if (results.length > 0)
+        return results
+      else
+        throw graphqlError(404, `Product with id ${id} does not exist.`)
+    }
+  }
+}
+```
+
+### API
+
+__*graphqlError('Oops, the product does not exist.')*__
+
+Returns a GraphQL error response with the above error message and a HTTP 500. 
+
+__*graphqlError('Oops, the product does not exist.', { alternateMessage: 'Internal Server Error', hide: true })*__
+
+Returns a GraphQL error response with error message 'Internal Server Error' (if the `hide` property is set to `true`) and a HTTP 500. 
+
+__*graphqlError(404, 'Oops, the product does not exist.')*__
+
+Returns a GraphQL error response with the above error message and a HTTP 404.
+
+__*graphqlError(404, 'Oops, the product does not exist.', { alternateMessage: 'Internal Server Error', hide: true })*__
+
+Returns a GraphQL error response with error message 'Internal Server Error' (if the `hide` property is set to `true`) and a HTTP 404. 
+
+## Controling GraphQl Server Behavior With Custom Middleware
+
+This section is broken down in 3 parts:
+- [Overview](#overview)
+- [Transforming The GraphQl Response](#transforming-the-graphql-response)
+- [Full API Definition](#full-api-definition)
+
+### Overview
+At the end, __graphql-serverless__ is simply another Express-like middleware, and as such, we've added the ability to react differently based on other middleware that may have manipulated the request object previously. Those early middleware can affect the behavior of _graphql-serverless_ thanks to the `graphql` property of the `request` object. 
+
+Let's take the `index.js` code from the previous [__*Basics*__](#basics) section and add this to it:
+
+```js
+// index.js
+
+const customMiddleware = (req, res, next) => {
+  req.graphql = {
+    query: `query { products(id:1){ id name shortDescription } }`
+  }
+  next()
+}
+
+// app.all(['/', '/graphiql'], graphqlHandler(graphqlOptions))
+app.all(['/', '/graphiql'], customMiddleware, graphqlHandler(graphqlOptions))
+
+// STEP 4. Starting the server 
+eval(app.listen('app', 4000))
+```
+
+Start your server with `node index.js`
+Browse to [http://localhost:4000/graphiql](http://localhost:4000/graphiql)
+Execute the following GraphQl query:
+```js
+query{
+  products(id:2){
+    id
+    name
+  }
+}
+```
+
+Normally, you would expect teh following response based on the logic of the code demoed in the [__*Basics*__](#basics) section:
+```js
+{
+  "data": {
+    "products": [
+      {
+        "id": "2",
+        "name": "Product B"
+      }
+    ]
+  }
+}
+```
+
+But instead, you will receive:
+```js
+{
+  "data": {
+    "products": [
+      {
+        "id": "1",
+        "name": "Product A",
+        "shortDescription": "First product."
+      }
+    ]
+  }
+}
+```
+
+This ability is one of the key feature allowing a middleware like [__*graphql-authorize*__](https://github.com/nicolasdao/graphql-authorize.git) which can remove certain fields from the response based on the user's rights. 
+
+### Transforming The GraphQl Response
+
+Another usefull capability is the modification of any GraphQl response. Let's modify the `customMiddleware` function we defined previously:
+
+```js
+const customMiddleware = (req, res, next) => {
+  req.graphql = {
+    // query: `query { products(id:1){ id name shortDescription } }`
+    transform: graphQlresponse => Object.assign({ magicProperty: { message: 'Magic', creator: 'Nicolas Dao' } }, graphQlresponse)
+  }
+  next()
+}
+```
+
+Executing the previous GraphQl query will yield the following response:
+```js
+{
+  "magicProperty": {
+    "message": "Magic",
+    "creator": "Nicolas Dao"
+  },
+  "data": {
+    "products": [
+      {
+        "id": "2",
+        "name": "Product B"
+      }
+    ]
+  }
+}
+```
+
+#### Custom Errors & Warnings
+
+2 other properties are very usefull to add warning or error messages:
+
+```js
+const customMiddleware = (req, res, next) => {
+  req.graphql = {
+    // query: `query { products(id:1){ id name shortDescription } }`
+    transform: graphQlresponse => Object.assign({ magicProperty: { message: 'Magic', creator: 'Nicolas Dao' } }, graphQlresponse),
+    warnings: [{ message: 'Hello, I am a warning.' }],
+    errors: [{ message: 'Hello, I am an error.' }]
+  }
+  next()
+}
+```
+
+Executing the previous GraphQl query will yield the following response:
+```js
+{
+  "magicProperty": {
+    "message": "Magic",
+    "creator": "Nicolas Dao"
+  },
+  "data": {
+    "products": [
+      {
+        "id": "2",
+        "name": "Product B"
+      }
+    ]
+  },
+  "errors": [
+    {
+      "message": "Hello, I am an error."
+    }
+  ],
+  "warnings": [
+    {
+      "message": "Hello, I am a warning."
+    }
+  ]
+}
+```
+
+
+### Full API Definition 
+
+
+As you can see, the `customMiddleware` we created has allowed us to spoof the original query and replace it with `query { products(id:1){ id name shortDescription } }`.
 
 # Contributing
 ```
