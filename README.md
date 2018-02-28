@@ -44,6 +44,7 @@ npm run deploy:prod
 >   - [Customizing GraphiQL](#customizing-graphiql)
 >   - [Managing GraphQl Errors](#managing-graphql-errors)
 >   - [Controling GraphQl Server Behavior With Custom Middleware](#controling-graphql-server-behavior-with-custom-middleware)
+> * [About Us](#this-is-what-we-re-up-to)
 
 # Install
 ```
@@ -256,7 +257,62 @@ Once the product has been inserted, you should be able to observe that your subs
 
 ## Customizing GraphiQL
 
+The code sample in the [__*Basics*__](#basics) section uses the default GraphiQl settings:
 
+<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphiql_light.png"/></p>
+
+By updating the `graphqlOptions` in the [__*Basics*__](#basics) section example as follow:
+
+```js
+const graphqlOptions = {
+  schema: executableSchema,
+  graphiql: { 
+    endpoint: '/graphiql',
+    head: {
+      title: 'Neap GraphQl API',
+      // Adding a custom Favicon
+      custom: '<link rel="shortcut icon" href="https://neap.co/favicon.ico">',
+      // Adding a dark theme
+      css: [
+        'https://neap.co/resources/css/graphiql/0.0.1/dark_style.css', 
+        'https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Source+Code+Pro:200,400,700']
+    },    
+    // Adding a custom JS script
+    script: () => {
+      function getCookie(cname) {
+        var name = cname + '='
+        var decodedCookie = decodeURIComponent(document.cookie)
+        var ca = decodedCookie.split(';')
+        for(var i = 0; i <ca.length; i++) {
+          var c = ca[i]
+          while (c.charAt(0) == ' ')
+            c = c.substring(1)
+          if (c.indexOf(name) == 0)
+            return c.substring(name.length, c.length)
+        }
+        return ''
+      }
+    },
+    // Executing a custom JS function each time a GraphQL request is made
+    onRequest: headers => {
+      var token = getCookie('neap_cookie')
+      if (token)
+        headers.Authorization = 'bearer ' + token
+    }
+  }
+}
+```
+
+We can update the GraphiQL interface as follow:
+
+<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphiql_dark.png"/></p>
+
+The differences are:
+- Custom page name
+- Custom favicon
+- Custom theme
+- Custom javascript 
+- Custom function running each time a GraphQl request is made. In our case, we're updating the HTTP headers to add a bearer token stored in a 'neap_cookie' cookie.
 
 ## Managing GraphQl Errors
 
