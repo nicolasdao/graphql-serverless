@@ -16,12 +16,38 @@
  *	LICENSE file in the root directory of this source tree. An additional grant
  *	of patent rights can be found in the PATENTS file in the same directory.
  */
+const fs = require('fs')
+const path = require('path')
+const HtmlToReactParser = require('html-to-react').Parser
 
 'use strict'
 
 Object.defineProperty(exports, '__esModule', {
 	value: true
 })
+
+/*eslint-disable */
+const getFullPath = p => path.join(process.cwd(), p)
+/*eslint-enable */
+
+let graphiqlJs = fs.readFileSync(getFullPath('./src/graphiql/index.js'), { encoding: 'utf8' })
+const graphiqlLightCss = fs.readFileSync(getFullPath('./src/graphiql/graphiql-light.css'), { encoding: 'utf8' })
+const graphiqlDarkCss = fs.readFileSync(getFullPath('./src/graphiql/graphiql-dark.css'), { encoding: 'utf8' })
+const fetchJs = fs.readFileSync(getFullPath('./src/graphiql/fetch.min.js'), { encoding: 'utf8' })
+const reactJs = fs.readFileSync(getFullPath('./src/graphiql/react.min.js'), { encoding: 'utf8' })
+const reactDomJs = fs.readFileSync(getFullPath('./src/graphiql/react-dom.min.js'), { encoding: 'utf8' })
+const subscriptionFetchJs = fs.readFileSync(getFullPath('./src/graphiql/graphiql-subscriptions-fetcher-client.js'), { encoding: 'utf8' })
+const subscriptionWsJs = fs.readFileSync(getFullPath('./src/graphiql/subscriptions-transport-ws-client.js'), { encoding: 'utf8' })
+
+const replaceLogo = (graphiQlJs, htmlLogo) => {
+	if (htmlLogo) {
+		const htmlToReactParser = new HtmlToReactParser()
+		const reactElement = htmlToReactParser.parse(htmlLogo)
+		const logo = JSON.stringify(reactElement)
+		return graphiQlJs.replace('return cloneElement(__graphiQlLogo__);', `return cloneElement(${logo})`)
+	} else 
+		return graphiQlJs
+}
 
 // Current latest version of GraphiQL.
 // var GRAPHIQL_VERSION = '0.11.2'
@@ -105,15 +131,7 @@ const renderGraphiQL = (data, custom={}) => {
 	const cssFiles = []
 	const scriptFiles = []
 
-	cssFiles.push(
-		...(!head.css ? ['//cdn.jsdelivr.net/npm/graphiql@0.11.2/graphiql.css'] :
-			Array.isArray(head.css) ? head.css : [head.css]))
-	scriptFiles.push(head.fetchJs || '//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js')
-	scriptFiles.push(head.reactJs || '//cdn.jsdelivr.net/react/15.4.2/react.min.js')
-	scriptFiles.push(head.reactDomJs || '//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js')
-	scriptFiles.push(head.graphiqlJs || '//cdn.jsdelivr.net/npm/graphiql@0.11.2/graphiql.min.js')
-	scriptFiles.push('//unpkg.com/subscriptions-transport-ws@0.8.2/browser/client.js')
-	scriptFiles.push('//unpkg.com/graphiql-subscriptions-fetcher@0.0.2/browser/client.js')
+	cssFiles.push(...(Array.isArray(head.css) ? head.css : [head.css]))
 
 	const pageTitle = head.title || 'GraphiQL'
 	const customScript = scriptifyFunc(custom.script)
@@ -147,8 +165,17 @@ const renderGraphiQL = (data, custom={}) => {
 				overflow: hidden;
 				width: 100%;
 			}
+			${cssFiles.length == 0 && head.theme == 'dark' ? graphiqlDarkCss : graphiqlLightCss}
 		</style>
-			${headScriptsAndCss}
+		${headScriptsAndCss}
+		<script>
+			${reactJs}
+			${reactDomJs}
+			${fetchJs}
+			${subscriptionFetchJs}
+			${subscriptionWsJs}
+			${replaceLogo(graphiqlJs, head.logo)}
+		</script>
 		</head>
 	<body>
 		${customScript}
