@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.7.2"></a>
+## [0.7.2](https://github.com/nicolasdao/google-graphql-functions/compare/v0.7.1...v0.7.2) (2018-03-03)
+
+
+### Bug Fixes
+
+* CSS issue in graphiQL ([5e57d9d](https://github.com/nicolasdao/google-graphql-functions/commit/5e57d9d))
+
+
+
 <a name="0.7.1"></a>
 ## [0.7.1](https://github.com/nicolasdao/google-graphql-functions/compare/v0.7.0...v0.7.1) (2018-03-02)
 
