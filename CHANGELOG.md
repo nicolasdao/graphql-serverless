@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.7.3"></a>
+## [0.7.3](https://github.com/nicolasdao/google-graphql-functions/compare/v0.7.2...v0.7.3) (2018-03-03)
+
+
+### Bug Fixes
+
+* GraphiQl theme is broken if it is not explicitely defined in the graphqlOptions ([f37cf5e](https://github.com/nicolasdao/google-graphql-functions/commit/f37cf5e))
+
+
+
 <a name="0.7.2"></a>
 ## [0.7.2](https://github.com/nicolasdao/google-graphql-functions/compare/v0.7.1...v0.7.2) (2018-03-03)
 
