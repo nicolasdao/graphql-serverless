@@ -311,6 +311,7 @@ The differences are:
 - Custom page name
 - Custom favicon
 - Changing from the default 'light' theme to a dark one
+- Custom logo
 - Custom javascript 
 - Custom function running each time a GraphQl request is made. In our case, we're updating the HTTP headers to add a bearer token stored in a 'neap_cookie' cookie.
 
