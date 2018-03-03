@@ -272,10 +272,10 @@ const graphqlOptions = {
       title: 'Neap GraphQl API',
       // Adding a custom Favicon
       custom: '<link rel="shortcut icon" href="https://neap.co/favicon.ico">',
-      // Adding a dark theme
-      css: [
-        'https://neap.co/resources/css/graphiql/0.0.1/dark_style.css', 
-        'https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Source+Code+Pro:200,400,700']
+      // Change the default 'light' theme to a dark one.
+      theme: 'dark',
+      // Replace the default 'GraphiQl' logo to your own
+      logo: '<div class="title"><img src="https://neap.co/img/neap_white_small_logo.png" style="width: 88px;z-index: 7;padding-left: 24px;"></div>'
     },    
     // Adding a custom JS script
     script: () => {
@@ -310,9 +310,28 @@ We can update the GraphiQL interface as follow:
 The differences are:
 - Custom page name
 - Custom favicon
-- Custom theme
+- Changing from the default 'light' theme to a dark one
 - Custom javascript 
 - Custom function running each time a GraphQl request is made. In our case, we're updating the HTTP headers to add a bearer token stored in a 'neap_cookie' cookie.
+
+To use a custom CSS rather than relying on the 'light' or 'dark' theme, you can use the `css` property:
+
+```js
+const graphqlOptions = {
+  schema: executableSchema,
+  graphiql: { 
+    endpoint: '/graphiql',
+    head: {
+      // Adding a dark theme
+      css: [
+        'https://neap.co/resources/css/graphiql/0.0.1/dark_style.css', 
+        'https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Source+Code+Pro:200,400,700']
+    }
+  }
+}
+```
+
+> WARNING: Using the `css` property will override completely any other out-of-the-box css.
 
 ## Managing GraphQl Errors
 
