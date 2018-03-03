@@ -259,7 +259,7 @@ Once the product has been inserted, you should be able to observe that your subs
 
 The code sample in the [__*Basics*__](#basics) section uses the default GraphiQl settings:
 
-<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphiql_light.png" width="600"/></p>
+<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphiql_light_theme.png" width="600"/></p>
 
 By updating the `graphqlOptions` in the [__*Basics*__](#basics) section example as follow:
 
@@ -305,7 +305,7 @@ const graphqlOptions = {
 
 We can update the GraphiQL interface as follow:
 
-<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphiql_dark.png" width="600"/></p>
+<p align="center"><img src="https://raw.githubusercontent.com/nicolasdao/graphql-serverless/master/img/graphiql_dark_theme.png" width="600"/></p>
 
 The differences are:
 - Custom page name
