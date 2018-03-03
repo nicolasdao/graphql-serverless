@@ -27,17 +27,22 @@ Object.defineProperty(exports, '__esModule', {
 })
 
 /*eslint-disable */
-const getFullPath = p => path.join(process.cwd(), p)
+const getFullPath = p => path.join(__dirname, p)
 /*eslint-enable */
 
-let graphiqlJs = fs.readFileSync(getFullPath('./src/graphiql/index.js'), { encoding: 'utf8' })
-const graphiqlLightCss = fs.readFileSync(getFullPath('./src/graphiql/graphiql-light.css'), { encoding: 'utf8' })
-const graphiqlDarkCss = fs.readFileSync(getFullPath('./src/graphiql/graphiql-dark.css'), { encoding: 'utf8' })
-const fetchJs = fs.readFileSync(getFullPath('./src/graphiql/fetch.min.js'), { encoding: 'utf8' })
-const reactJs = fs.readFileSync(getFullPath('./src/graphiql/react.min.js'), { encoding: 'utf8' })
-const reactDomJs = fs.readFileSync(getFullPath('./src/graphiql/react-dom.min.js'), { encoding: 'utf8' })
-const subscriptionFetchJs = fs.readFileSync(getFullPath('./src/graphiql/graphiql-subscriptions-fetcher-client.js'), { encoding: 'utf8' })
-const subscriptionWsJs = fs.readFileSync(getFullPath('./src/graphiql/subscriptions-transport-ws-client.js'), { encoding: 'utf8' })
+const theme = {
+	light: fs.readFileSync(getFullPath('./graphiql/graphiql-light.css'), { encoding: 'utf8' }),
+	dark: fs.readFileSync(getFullPath('./graphiql/graphiql-dark.css'), { encoding: 'utf8' }),
+	'undefined': '',
+	'null': ''
+}
+
+const graphiqlJs = fs.readFileSync(getFullPath('./graphiql/index.js'), { encoding: 'utf8' })
+const fetchJs = fs.readFileSync(getFullPath('./graphiql/fetch.min.js'), { encoding: 'utf8' })
+const reactJs = fs.readFileSync(getFullPath('./graphiql/react.min.js'), { encoding: 'utf8' })
+const reactDomJs = fs.readFileSync(getFullPath('./graphiql/react-dom.min.js'), { encoding: 'utf8' })
+const subscriptionFetchJs = fs.readFileSync(getFullPath('./graphiql/graphiql-subscriptions-fetcher-client.js'), { encoding: 'utf8' })
+const subscriptionWsJs = fs.readFileSync(getFullPath('./graphiql/subscriptions-transport-ws-client.js'), { encoding: 'utf8' })
 
 const replaceLogo = (graphiQlJs, htmlLogo) => {
 	if (htmlLogo) {
@@ -131,7 +136,8 @@ const renderGraphiQL = (data, custom={}) => {
 	const cssFiles = []
 	const scriptFiles = []
 
-	cssFiles.push(...(Array.isArray(head.css) ? head.css : [head.css]))
+	if (head.css)
+		cssFiles.push(...(Array.isArray(head.css) ? head.css : [head.css]))
 
 	const pageTitle = head.title || 'GraphiQL'
 	const customScript = scriptifyFunc(custom.script)
@@ -142,6 +148,8 @@ const renderGraphiQL = (data, custom={}) => {
 		${head.custom || ''}
 		${cssFiles.map(f => `<link href="${f}"  rel="stylesheet" />`).join('\n		')}
 		${scriptFiles.map(f => `<script src="${f}"></script>`).join('\n		')}`
+
+	const inlineCss = theme[head.theme]
 
 	/* eslint-disable max-len */
 	return `<!--
@@ -165,7 +173,7 @@ const renderGraphiQL = (data, custom={}) => {
 				overflow: hidden;
 				width: 100%;
 			}
-			${cssFiles.length == 0 && head.theme == 'dark' ? graphiqlDarkCss : graphiqlLightCss}
+			${inlineCss}
 		</style>
 		${headScriptsAndCss}
 		<script>
