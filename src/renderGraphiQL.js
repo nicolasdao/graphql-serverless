@@ -149,7 +149,8 @@ const renderGraphiQL = (data, custom={}) => {
 		${cssFiles.map(f => `<link href="${f}"  rel="stylesheet" />`).join('\n		')}
 		${scriptFiles.map(f => `<script src="${f}"></script>`).join('\n		')}`
 
-	const inlineCss = theme[head.theme]
+	const cssTheme = cssFiles.length == 0 && !head.theme ? 'light' : head.theme
+	const inlineCss = theme[cssTheme]
 
 	/* eslint-disable max-len */
 	return `<!--
