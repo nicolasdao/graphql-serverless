@@ -1,5 +1,4 @@
 # GraphQL For Serverless &middot;  [![NPM](https://img.shields.io/npm/v/graphql-serverless.svg?style=flat)](https://www.npmjs.com/package/graphql-serverless) [![Tests](https://travis-ci.org/nicolasdao/graphql-serverless.svg?branch=master)](https://travis-ci.org/nicolasdao/graphql-serverless) [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause) [![Neap](https://neap.co/img/made_by_neap.svg)](#this-is-what-we-re-up-to)
-
 __*graphql-serverless*__ is a middleware for [_**webfunc**_](https://github.com/nicolasdao/webfunc), that allows to deploy [GraphQL](http://graphql.org/learn/) apis (including an optional [GraphiQL interface](https://github.com/graphql/graphiql)) to the most popular serverless platforms. _**GraphQl Subscriptions**_ over websocket are also supported out-of-the-box (also supported in GraphiQL). Without changing a single line of code, seamlessly deploy to:
 - [Zeit Now](https://zeit.co/now) (using express under the hood)
 - [Google Cloud Functions](https://cloud.google.com/functions/) (incl. Firebase Function)
