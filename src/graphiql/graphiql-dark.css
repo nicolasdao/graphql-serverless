@@ -903,7 +903,7 @@ div.CodeMirror-lint-tooltip > * + * {
 
 /* Punctuation */
 .cm-punctuation {
-  color: #555;
+  color: #909090;
 }
 
 /* Keyword */
