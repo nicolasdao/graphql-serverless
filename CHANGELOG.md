@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.8.1"></a>
+## [0.8.1](https://github.com/nicolasdao/google-graphql-functions/compare/v0.8.0...v0.8.1) (2018-07-06)
+
+
+### Bug Fixes
+
+* The GraphiQL dark theme caret is almost invisible. Make it brighter. ([17b3297](https://github.com/nicolasdao/google-graphql-functions/commit/17b3297))
+
+
+
 <a name="0.8.0"></a>
 # [0.8.0](https://github.com/nicolasdao/google-graphql-functions/compare/v0.7.8...v0.8.0) (2018-05-06)
 
