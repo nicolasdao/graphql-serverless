@@ -329,6 +329,10 @@ function graphqlHTTP(options) {
 			
 			return execute()
 		})
+			.catch(err => {
+				console.log(`${err.message}\n${err.stack}`)
+				throw err
+			})
 	}
 }
 

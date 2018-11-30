@@ -7,9 +7,11 @@
   ],
   "main": "src/index.js",
   "scripts": {
+    "lint": "eslint src/ --fix",
+    "push": "git push --follow-tags origin master && npm publish",
+    "rls": "standard-version --release-as",
     "test": "mocha",
-    "eslint": "eslint src/ --fix",
-    "release": "standard-version"
+    "v": "node -e \"console.log(require('./package.json').version)\""
   },
   "repository": {
     "type": "git",
