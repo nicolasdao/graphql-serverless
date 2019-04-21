@@ -108,6 +108,9 @@ However, if you really want to start on a blank page:
     schema: executableSchema,
     graphiql: { // If you do not want to host any GraphiQl web interface, leave this property undefined.
       endpoint: '/graphiql' 
+    },
+    context: {
+    	someVar: 'This variable is passed in the "context" object in each resolver.'
     }
   }
 
