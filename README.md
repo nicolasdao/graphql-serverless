@@ -264,41 +264,41 @@ By updating the `graphqlOptions` in the [__*Basics*__](#basics) section example 
 
 ```js
 const graphqlOptions = {
-  schema: executableSchema,
-  graphiql: { 
-    endpoint: '/graphiql',
-    head: {
-      title: 'Neap GraphQl API',
-      // Adding a custom Favicon
-      custom: '<link rel="shortcut icon" href="https://neap.co/favicon.ico">',
-      // Change the default 'light' theme to a dark one.
-      theme: 'dark',
-      // Replace the default 'GraphiQl' logo to your own
-      logo: '<div class="title"><img src="https://neap.co/img/neap_white_small_logo.png" style="width: 88px;z-index: 7;padding-left: 24px;"></div>'
-    },    
-    // Adding a custom JS script
-    script: () => {
-      function getCookie(cname) {
-        var name = cname + '='
-        var decodedCookie = decodeURIComponent(document.cookie)
-        var ca = decodedCookie.split(';')
-        for(var i = 0; i <ca.length; i++) {
-          var c = ca[i]
-          while (c.charAt(0) == ' ')
-            c = c.substring(1)
-          if (c.indexOf(name) == 0)
-            return c.substring(name.length, c.length)
-        }
-        return ''
-      }
-    },
-    // Executing a custom JS function each time a GraphQL request is made
-    onRequest: headers => {
-      var token = getCookie('neap_cookie')
-      if (token)
-        headers.Authorization = 'bearer ' + token
-    }
-  }
+	schema: executableSchema,
+	graphiql: { 
+		endpoint: '/graphiql',
+		head: {
+			title: 'Neap GraphQl API',
+			// Adding a custom Favicon
+			custom: '<link rel="shortcut icon" href="https://neap.co/favicon.ico">',
+			// Change the default 'light' theme to a dark one.
+			theme: 'dark',
+			// Replace the default 'GraphiQl' logo to your own
+			logo: '<div class="title"><img src="https://neap.co/img/neap_white_small_logo.png" style="width: 88px;z-index: 7;padding-left: 24px;"></div>'
+		},    
+		// Adding a custom JS script
+		script: () => {
+			function getCookie(cname) {
+				var name = cname + '='
+				var decodedCookie = decodeURIComponent(document.cookie)
+				var ca = decodedCookie.split(';')
+				for(var i = 0; i <ca.length; i++) {
+					var c = ca[i]
+					while (c.charAt(0) == ' ')
+					c = c.substring(1)
+					if (c.indexOf(name) == 0)
+					return c.substring(name.length, c.length)
+				}
+				return ''
+			}
+		},
+		// Executing a custom JS function each time a GraphQL request is made
+		onRequest: headers => {
+			var token = getCookie('neap_cookie')
+			if (token)
+				headers.Authorization = 'bearer ' + token
+		}
+	}
 }
 ```
 
