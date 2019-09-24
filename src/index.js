@@ -73,8 +73,8 @@ function graphqlHTTP(options) {
 		let subscriptionsEndpoint
 		let websocketConnectionParams
 		let schemaAST
-		let graphiQlOptions
-		let onResponse
+		let graphiQlOptions = {}
+		let onResponse = (req, res, result) => Promise.resolve(result)
 
 		// Promises are used as a mechanism for capturing any thrown errors during
 		// the asynchronous process below.
@@ -114,16 +114,14 @@ function graphqlHTTP(options) {
 			subscriptionsEndpoint = optionsData.subscriptionsEndpoint
 			websocketConnectionParams = optionsData.websocketConnectionParams
 			schemaAST = optionsData.schemaAST
-			graphiQlOptions = optionsData.graphiql != undefined && typeof(optionsData.graphiql) == 'object' ? optionsData.graphiql : {}
+			if (optionsData.graphiql != undefined && typeof(optionsData.graphiql) == 'object')
+				graphiQlOptions =  optionsData.graphiql
 			if (graphiQlOptions.toggle == false)
 				graphiql = false
 			if (graphiQlOptions.endpoint)
 				endpointURL = graphiQlOptions.endpoint
-			onResponse = optionsData.onResponse && typeof(optionsData.onResponse) == 'function'
-				? (req, res, result) => Promise.resolve(null).then(() => optionsData.onResponse(req, res, result))
-				/*eslint-disable */
-				: (req, res, result) => Promise.resolve(result)
-				/*eslint-enable */
+			if (optionsData.onResponse && typeof(optionsData.onResponse) == 'function')
+				onResponse = (req, res, result) => Promise.resolve(null).then(() => optionsData.onResponse(req, res, result))
 
 			validationRules = graphql.specifiedRules
 			if (optionsData.validationRules) {
@@ -328,11 +326,10 @@ function graphqlHTTP(options) {
 					})
 			
 			return execute()
+		}).catch(err => {
+			console.log(err.stack)
+			throw err
 		})
-			.catch(err => {
-				console.log(`${err.message}\n${err.stack}`)
-				throw err
-			})
 	}
 }
 
