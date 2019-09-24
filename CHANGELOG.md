@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.8.3"></a>
+## [0.8.3](https://github.com/nicolasdao/google-graphql-functions/compare/v0.8.2...v0.8.3) (2019-09-24)
+
+
+### Bug Fixes
+
+* The server fails with no proper error message when the graphql query is malformed. ([009677c](https://github.com/nicolasdao/google-graphql-functions/commit/009677c))
+
+
+
 <a name="0.8.2"></a>
 ## [0.8.2](https://github.com/nicolasdao/google-graphql-functions/compare/v0.8.1...v0.8.2) (2018-11-30)
 
