@@ -49,7 +49,7 @@
     "eslint": "^4.1.1",
     "mocha": "^3.4.2",
     "node-mocks-http": "^1.6.4",
-    "standard-version": "^4.2.0",
+    "standard-version": "^8.0.1",
     "webfunc": "^0.13.0-alpha.2"
   }
 }
