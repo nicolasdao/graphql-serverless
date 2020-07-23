@@ -1,6 +1,13 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [0.9.0](https://github.com/nicolasdao/google-graphql-functions/compare/v0.8.3...v0.9.0) (2020-07-23)
+
+
+### Features
+
+* Add better error handling support ([f568e15](https://github.com/nicolasdao/google-graphql-functions/commit/f568e15f953539029b7bf18bea781ca30bd3336d))
 
 <a name="0.8.3"></a>
 ## [0.8.3](https://github.com/nicolasdao/google-graphql-functions/compare/v0.8.2...v0.8.3) (2019-09-24)
