@@ -392,10 +392,66 @@ const productResolver = {
       if (results.length > 0)
         return results
       else
-        throw graphqlError(404, `Product with id ${id} does not exist.`)
+        throw graphqlError({ code: 404, text: `Product with id ${id} does not exist.` })
     }
   }
 }
+```
+
+In case of errors, the response will look like this:
+
+```js
+{
+  "errors": [
+    {
+      "message": "Product with id 123 does not exist."
+    }
+  ],
+  "data": {
+    "products": null
+  }
+}
+```
+
+The `graphqlError` function also supports serializing errors:
+
+```js
+throw graphqlError({ code: 422, errors:[error] })
+```
+
+The output in case of errors is similar to:
+
+```js
+{
+  "errors": [
+    {
+      "message": "Some error message",
+      "locations": [
+        {
+          "line": 382,
+          "col": 17,
+          "method": "wrapErrors",
+          "path": "/Users/nicolasdao/Documents/myproject/src/services/_utils.js"
+        },
+        {
+          "line": 65,
+          "col": 19,
+          "method": "onFulfilled",
+          "path": "/Users/nicolasdao/Documents/myproject/src/services/core/node_modules/co/index.js"
+        }
+      ]
+    }
+  ],
+  "data": {
+    "products": null
+  }
+}
+```
+
+If the stack information in the `locations` field are sensitive, they can be turned off as follow:
+
+```js
+throw graphqlError({ code: 422, errors:[error], noStack:true })
 ```
 
 ### API

@@ -277,22 +277,35 @@ function graphqlHTTP(options) {
 				if (result.errors && result.errors.length > 0) {
 					const formattingError = formatErrorFn || graphql.formatError
 					let explicitHttpCode
-					result.errors = result.errors.map(e => {
-						let newError = formattingError(e)
-						let errorMessage
+					result.errors = result.errors.reduce((acc, e) => {
+						// 'newError' example: 
+						// {
+						//		message: '{"type":"graphql","httpCode":422,"message":"Failed to do something","alternateMessage":"Internal Server Error"}',
+						//		locations: [ { line: 2, column: 3 } ],
+						//		path: [ 'conditionUpdate' ]
+						// }
+						const newError = formattingError(e)
+						// The block of code below reformats the 'newError.message' property
 						try {
-							const errMsg = JSON.parse(newError.message) || {}
-							if (errMsg.type == 'graphql') {
-								explicitHttpCode = errMsg.httpCode || 500
-								errorMessage = errMsg.hideErrors && errMsg.alternateMessage ? errMsg.alternateMessage : errMsg.message
-							} else 
-								errorMessage = newError.message
+							const customError = JSON.parse(newError.message) || {}
+							if (customError.type == 'graphql') {
+								explicitHttpCode = customError.httpCode || 500
+								if (customError.errors && Array.isArray(customError.errors))
+									acc.push(...customError.errors)
+								else
+									acc.push({
+										message:customError.hideErrors && customError.alternateMessage ? customError.alternateMessage : customError.message
+									})
+								
+								return acc
+							}
 						} catch (err) {
-							errorMessage = newError.message
+							(() => null)(err)
 						}
-						newError.message = errorMessage
-						return newError
-					})
+
+						acc.push(newError)
+						return acc
+					}, [])
 					if (!explicitHttpCode && allPropertiesFalsy(result.data))
 						httpCode = response.statusCode < 500 ? 500 : response.statusCode
 					else if (explicitHttpCode)
@@ -319,6 +332,7 @@ function graphqlHTTP(options) {
 							_result.errors.push({ message: `${r._error.message}\n${r._error.stack}`, location: r._location })
 							httpCode = 500
 						}
+
 						const payload = JSON.stringify(_result, null, pretty ? 2 : 0)
 						response.setHeader('Content-Type', 'application/json; charset=utf-8')
 						sendResponse(response, payload, httpCode)
